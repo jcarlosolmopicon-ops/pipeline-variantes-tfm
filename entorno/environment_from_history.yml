@@ -1,0 +1,31 @@
+name: tfm-variantes
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - jupyter=1.0.0
+  - bcftools=1.19
+  - samtools=1.19
+  - pip
+  - bedtools=2.31.0
+  - ensembl-vep=115.2
+  - multiqc=1.21
+  - fastqc=0.12.1
+  - bwa-mem2=2.2.1
+  - trim-galore=0.6.10
+  - htslib=1.19
+  - xgboost=2.0.3
+  - imbalanced-learn=0.12.0
+  - scikit-learn=1.4.1
+  - seaborn=0.13.2
+  - numpy=1.26.4
+  - pandas=2.2.1
+  - gatk4=4.5.0.0
+  - matplotlib=3.8.3
+  - nextflow
+  - sra-tools=3.1.1
+  - mamba
+  - crossmap
+prefix: /home/juan_carlos/miniconda3/envs/tfm-variantes
