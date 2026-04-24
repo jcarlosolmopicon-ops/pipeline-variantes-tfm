@@ -1,0 +1,26 @@
+name: tfm-variantes
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - fastqc=0.12.1
+  - multiqc=1.21
+  - trim-galore=0.6.10
+  - bwa-mem2=2.2.1
+  - samtools=1.19
+  - gatk4=4.5.0.0
+  - ensembl-vep=110.1
+  - bcftools=1.19
+  - bedtools=2.31.0
+  - htslib=1.19
+  - scikit-learn=1.4.1
+  - xgboost=2.0.3
+  - pandas=2.2.1
+  - numpy=1.26.4
+  - matplotlib=3.8.3
+  - seaborn=0.13.2
+  - jupyter=1.0.0
+  - imbalanced-learn=0.12.0
