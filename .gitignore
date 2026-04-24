@@ -1,0 +1,32 @@
+# Nextflow runtime
+.nextflow/
+.nextflow.log*
+work/
+datos-intermedios/nextflow-work/
+
+# Datos grandes (no versionar)
+datos-raw/*.fastq.gz
+datos-raw/*.bam
+datos-raw/*.fa
+datos-raw/*.fa.gz
+datos-raw/*.fasta
+datos-intermedios/*.bam
+datos-intermedios/*.bai
+datos-intermedios/*.vcf.gz
+datos-intermedios/*.tbi
+
+# Modelos ML serializados (grandes)
+resultados/**/*.pkl
+resultados/**/*.joblib
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Conda
+.conda/
+
+# OS
+.DS_Store
+Thumbs.db
