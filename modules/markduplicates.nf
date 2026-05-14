@@ -1,6 +1,8 @@
 process MARKDUPLICATES {
     tag "${meta.id}"
     label 'process_gatk'
+    publishDir "${params.outdir}/markdup", mode: 'copy'
+
     conda 'bioconda::gatk4=4.5.0.0 bioconda::samtools=1.19'
     container 'broadinstitute/gatk:4.5.0.0'
 
@@ -18,8 +20,7 @@ process MARKDUPLICATES {
         -I ${bam} \\
         -O ${meta.id}.markdup.bam \\
         -M ${meta.id}.markdup.metrics \\
-        --TMP_DIR /tmp
-
+        --TMP_DIR .
     samtools index ${meta.id}.markdup.bam
     """
 }

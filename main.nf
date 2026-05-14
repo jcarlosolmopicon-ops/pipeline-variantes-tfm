@@ -5,6 +5,7 @@ include { FASTQC      } from './modules/fastqc'
 include { MULTIQC     } from './modules/multiqc'
 include { TRIM_GALORE } from './modules/trim_galore'
 include { BWA_MEM2    } from './modules/bwa_mem2'
+include { MARKDUPLICATES } from './modules/markduplicates'
 
 workflow {
     log.info """
@@ -38,5 +39,7 @@ workflow {
         index_ch  = Channel.fromPath("${params.genome}.*").collect()
         TRIM_GALORE(reads_ch)
         BWA_MEM2(TRIM_GALORE.out.trimmed_reads, genome_ch, index_ch)
+        MARKDUPLICATES(BWA_MEM2.out.bam.join(BWA_MEM2.out.bai))
+    
     }
 }
