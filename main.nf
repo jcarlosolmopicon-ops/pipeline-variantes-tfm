@@ -35,7 +35,6 @@ log.info """
  outdir   : ${params.outdir}
  genome   : ${params.genome}
  profile  : ${workflow.profile}
- version  : ${manifest.version}
 ──────────────────────────────────────────────────────────────
 """.stripIndent()
 
