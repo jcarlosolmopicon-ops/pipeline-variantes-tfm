@@ -6,6 +6,7 @@ include { MULTIQC     } from './modules/multiqc'
 include { TRIM_GALORE } from './modules/trim_galore'
 include { BWA_MEM2    } from './modules/bwa_mem2'
 include { MARKDUPLICATES } from './modules/markduplicates'
+include { BQSR } from './modules/bqsr'
 
 workflow {
     log.info """
@@ -35,11 +36,19 @@ workflow {
     }
 
     if (params.step == 'align' || params.step == 'all') {
-        genome_ch = Channel.value(file(params.genome))
-        index_ch  = Channel.fromPath("${params.genome}.*").collect()
+        genome_ch  = Channel.value(file(params.genome))
+        index_ch   = Channel.fromPath("${params.genome}.*").collect()
+        dbsnp_ch   = Channel.value(file(params.dbsnp))
+        dbsnp_idx  = Channel.value(file(params.dbsnp_index))
         TRIM_GALORE(reads_ch)
         BWA_MEM2(TRIM_GALORE.out.trimmed_reads, genome_ch, index_ch)
         MARKDUPLICATES(BWA_MEM2.out.bam.join(BWA_MEM2.out.bai))
-    
+        BQSR(
+            MARKDUPLICATES.out.bam.join(MARKDUPLICATES.out.bai),
+            genome_ch,
+            index_ch,
+            dbsnp_ch,
+            dbsnp_idx
+        )    
     }
 }
