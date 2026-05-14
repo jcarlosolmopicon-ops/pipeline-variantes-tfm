@@ -10,6 +10,7 @@ process BQSR {
     tuple val(meta), path(bam), path(bai)
     path genome
     path genome_index
+    path genome_dict
     path dbsnp
     path dbsnp_index
 

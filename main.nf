@@ -38,6 +38,7 @@ workflow {
     if (params.step == 'align' || params.step == 'all') {
         genome_ch  = Channel.value(file(params.genome))
         index_ch   = Channel.fromPath("${params.genome}.*").collect()
+        dict_ch    = Channel.value(file(params.genome.replace('.fa', '.dict')))
         dbsnp_ch   = Channel.value(file(params.dbsnp))
         dbsnp_idx  = Channel.value(file(params.dbsnp_index))
         TRIM_GALORE(reads_ch)
@@ -47,8 +48,9 @@ workflow {
             MARKDUPLICATES.out.bam.join(MARKDUPLICATES.out.bai),
             genome_ch,
             index_ch,
+            dict_ch,
             dbsnp_ch,
             dbsnp_idx
-        )    
+        )
     }
 }
