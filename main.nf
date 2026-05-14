@@ -7,6 +7,7 @@ include { TRIM_GALORE } from './modules/trim_galore'
 include { BWA_MEM2    } from './modules/bwa_mem2'
 include { MARKDUPLICATES } from './modules/markduplicates'
 include { BQSR } from './modules/bqsr'
+include { MUTECT2 } from './modules/mutect2'
 
 workflow {
     log.info """
@@ -52,5 +53,18 @@ workflow {
             dbsnp_ch,
             dbsnp_idx
         )
+    }
+
+    if (params.step == 'call' || params.step == 'all') {
+        genome_ch  = Channel.value(file(params.genome))
+        index_ch   = Channel.fromPath("${params.genome}.*").collect()
+        dict_ch    = Channel.value(file(params.genome.replace('.fa', '.dict')))
+
+        tumor_ch  = Channel.fromPath("${params.outdir}/bqsr/tumor.bqsr.bam")
+            .map { bam -> [ [id: 'tumor'],  bam, file("${bam}.bai") ] }
+        normal_ch = Channel.fromPath("${params.outdir}/bqsr/normal.bqsr.bam")
+            .map { bam -> [ [id: 'normal'], bam, file("${bam}.bai") ] }
+
+        MUTECT2(tumor_ch, normal_ch, genome_ch, index_ch, dict_ch)
     }
 }
