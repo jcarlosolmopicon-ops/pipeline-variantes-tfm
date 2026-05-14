@@ -1,5 +1,6 @@
 process MULTIQC {
     label 'process_low'
+    publishDir "${params.outdir}/multiqc", mode: 'copy'
 
     conda 'bioconda::multiqc=1.21'
     container 'multiqc/multiqc:v1.21'
@@ -9,7 +10,7 @@ process MULTIQC {
 
     output:
     path("multiqc_report.html"), emit: report
-    path("multiqc_report_data/"),       emit: data
+    path("multiqc_report_data/"), emit: data
 
     script:
     """

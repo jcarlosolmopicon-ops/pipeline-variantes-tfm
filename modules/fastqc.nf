@@ -1,6 +1,7 @@
 process FASTQC {
     tag "${meta.id}"
     label 'process_low'
+    publishDir "${params.outdir}/fastqc", mode: 'copy'
 
     conda 'bioconda::fastqc=0.12.1'
     container 'biocontainers/fastqc:0.12.1--hdfd78af_0'
