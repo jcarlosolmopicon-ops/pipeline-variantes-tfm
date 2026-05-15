@@ -8,6 +8,7 @@ include { BWA_MEM2    } from './modules/bwa_mem2'
 include { MARKDUPLICATES } from './modules/markduplicates'
 include { BQSR } from './modules/bqsr'
 include { MUTECT2 } from './modules/mutect2'
+include { VEP     } from './modules/vep'
 
 workflow {
     log.info """
@@ -66,5 +67,10 @@ workflow {
             .map { bam -> [ [id: 'normal'], bam, file("${bam}.bai") ] }
 
         MUTECT2(tumor_ch, normal_ch, genome_ch, index_ch, dict_ch)
+    }
+
+    if (params.step == 'annotate' || params.step == 'all') {
+        vcf_ch = Channel.fromPath("${params.outdir}/mutect2/somatic.filtered.vcf.gz")
+        VEP(vcf_ch)
     }
 }

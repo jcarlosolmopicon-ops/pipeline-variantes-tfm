@@ -3,7 +3,7 @@ process VEP {
     label 'process_vep'
     publishDir "${params.outdir}/vep", mode: 'copy'
 
-    conda 'bioconda::ensembl-vep=110.1'
+    conda 'bioconda::ensembl-vep=115'
 
     input:
     path vcf
