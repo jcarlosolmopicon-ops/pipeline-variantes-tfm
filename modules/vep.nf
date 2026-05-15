@@ -1,8 +1,9 @@
 process VEP {
     tag "vep_annotation"
     label 'process_vep'
+    publishDir "${params.outdir}/vep", mode: 'copy'
+
     conda 'bioconda::ensembl-vep=110.1'
-    container 'ensemblorg/ensembl-vep:release_110.1'
 
     input:
     path vcf
