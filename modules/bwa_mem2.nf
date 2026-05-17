@@ -24,6 +24,7 @@ process BWA_MEM2 {
         ${reads} \\
     | samtools sort \\
         -@ ${task.cpus} \\
+	-m 4G \\
         -o ${meta.id}.sorted.bam
     samtools index ${meta.id}.sorted.bam
     """
