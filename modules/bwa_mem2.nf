@@ -2,7 +2,7 @@ process BWA_MEM2 {
     tag "${meta.id}"
     label 'high_cpu'
     publishDir "${params.outdir}/bam", mode: 'copy'
-    conda 'bioconda::bwa-mem2=2.2.1 bioconda::samtools=1.19'
+    conda 'bioconda::bwa=0.7.17 bioconda::samtools=1.19'
     errorStrategy 'ignore'
     input:
     tuple val(meta), path(reads)
@@ -14,7 +14,7 @@ process BWA_MEM2 {
     script:
     def rg = "@RG\\tID:${meta.id}\\tSM:${meta.id}\\tPL:ILLUMINA\\tLB:${meta.id}_lib1"
     """
-    bwa-mem2 mem \\
+    bwa mem \\
         -t ${task.cpus} \\
         -R "${rg}" \\
         ${genome} \\
