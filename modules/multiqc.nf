@@ -1,8 +1,9 @@
 process MULTIQC {
-    label 'process_low'
+    label 'low_cpu'
     publishDir "${params.outdir}/multiqc", mode: 'copy'
 
-    conda 'bioconda::multiqc=1.21'
+    conda 'bioconda::multiqc=1.21 conda-forge::lzstring'
+    errorStrategy 'ignore'
     container 'multiqc/multiqc:v1.21'
 
     input:

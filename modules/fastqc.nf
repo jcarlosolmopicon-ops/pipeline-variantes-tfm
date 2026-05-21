@@ -1,6 +1,7 @@
 process FASTQC {
     tag "${meta.id}"
-    label 'process_low'
+    label 'high_cpu'
+    errorStrategy 'ignore'
     publishDir "${params.outdir}/fastqc", mode: 'copy'
 
     conda 'bioconda::fastqc=0.12.1'
@@ -13,11 +14,12 @@ process FASTQC {
     tuple val(meta), path("*.html"), emit: html
     tuple val(meta), path("*.zip"),  emit: zip
 
-    script:
-    """
-    fastqc \\
-        --threads ${task.cpus} \\
-        --outdir . \\
-        ${reads}
-    """
+script:
+"""
+export NXF_DEBUG=\${NXF_DEBUG:-0}
+fastqc \\
+    --threads ${task.cpus} \\
+    --outdir . \\
+    ${reads}
+"""
 }

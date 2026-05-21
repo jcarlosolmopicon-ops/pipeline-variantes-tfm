@@ -1,17 +1,14 @@
 process VEP {
     tag "vep_annotation"
-    label 'process_vep'
+    label 'vep'
     publishDir "${params.outdir}/vep", mode: 'copy'
-
-    conda 'bioconda::ensembl-vep=115'
-
+    conda 'bioconda::ensembl-vep=110.1'
+    errorStrategy 'ignore'
     input:
     path vcf
-
     output:
     path "annotated.vcf.gz",              emit: vcf
     path "annotated.vcf.gz_summary.html", emit: summary
-
     script:
     """
     vep \\
