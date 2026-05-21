@@ -1,4 +1,4 @@
-process BWA_MEM2 {
+process BWA_MEM {
     tag "${meta.id}"
     label 'high_cpu'
     publishDir "${params.outdir}/bam", mode: 'copy'

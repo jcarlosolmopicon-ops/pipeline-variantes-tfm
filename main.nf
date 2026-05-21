@@ -4,7 +4,7 @@ nextflow.enable.dsl = 2
 include { FASTQC         } from './modules/fastqc'
 include { MULTIQC        } from './modules/multiqc'
 include { TRIM_GALORE    } from './modules/trim_galore'
-include { BWA_MEM2       } from './modules/bwa_mem2'
+include { BWA_MEM        } from './modules/bwa_mem'
 include { MARKDUPLICATES } from './modules/markduplicates'
 include { BQSR           } from './modules/bqsr'
 include { MUTECT2        } from './modules/mutect2'
@@ -30,7 +30,7 @@ workflow {
 
     if (params.step == 'qc') {
         FASTQC(reads_ch)
-        MULTIQC(FASTQC.out.zip.map { it[1] }.collect())
+        MULTIQC(Channel.fromPath("${params.outdir}/fastqc/*.zip").collect())
     }
 
     if (params.step == 'trim') {
@@ -38,14 +38,14 @@ workflow {
     }
 
     if (params.step == 'align') {
-        genome_ch  = Channel.value(file(params.genome))
-        index_ch   = Channel.fromPath("${params.genome}.*").collect()
-        dict_ch    = Channel.value(file(params.genome.replace('.fa', '.dict')))
-        dbsnp_ch   = Channel.value(file(params.dbsnp))
-        dbsnp_idx  = Channel.value(file(params.dbsnp_index))
+        genome_ch = Channel.value(file(params.genome))
+        index_ch  = Channel.fromPath("${params.genome}.*").collect()
+        dict_ch   = Channel.value(file(params.genome.replace('.fa', '.dict')))
+        dbsnp_ch  = Channel.value(file(params.dbsnp))
+        dbsnp_idx = Channel.value(file(params.dbsnp_index))
         TRIM_GALORE(reads_ch)
-        BWA_MEM2(TRIM_GALORE.out.trimmed_reads, genome_ch, index_ch)
-        MARKDUPLICATES(BWA_MEM2.out.bam.join(BWA_MEM2.out.bai))
+        BWA_MEM(TRIM_GALORE.out.trimmed_reads, genome_ch, index_ch)
+        MARKDUPLICATES(BWA_MEM.out.bam.join(BWA_MEM.out.bai))
         BQSR(
             MARKDUPLICATES.out.bam.join(MARKDUPLICATES.out.bai),
             genome_ch, index_ch, dict_ch, dbsnp_ch, dbsnp_idx
@@ -53,9 +53,9 @@ workflow {
     }
 
     if (params.step == 'call') {
-        genome_ch  = Channel.value(file(params.genome))
-        index_ch   = Channel.fromPath("${params.genome}.*").collect()
-        dict_ch    = Channel.value(file(params.genome.replace('.fa', '.dict')))
+        genome_ch = Channel.value(file(params.genome))
+        index_ch  = Channel.fromPath("${params.genome}.*").collect()
+        dict_ch   = Channel.value(file(params.genome.replace('.fa', '.dict')))
         tumor_ch  = Channel.fromPath("${params.outdir}/bqsr/tumor.bqsr.bam")
             .map { bam -> [ [id: 'tumor'],  bam, file("${bam}.bai") ] }
         normal_ch = Channel.fromPath("${params.outdir}/bqsr/normal.bqsr.bam")
@@ -69,16 +69,16 @@ workflow {
     }
 
     if (params.step == 'all') {
-        genome_ch  = Channel.value(file(params.genome))
-        index_ch   = Channel.fromPath("${params.genome}.*").collect()
-        dict_ch    = Channel.value(file(params.genome.replace('.fa', '.dict')))
-        dbsnp_ch   = Channel.value(file(params.dbsnp))
-        dbsnp_idx  = Channel.value(file(params.dbsnp_index))
+        genome_ch = Channel.value(file(params.genome))
+        index_ch  = Channel.fromPath("${params.genome}.*").collect()
+        dict_ch   = Channel.value(file(params.genome.replace('.fa', '.dict')))
+        dbsnp_ch  = Channel.value(file(params.dbsnp))
+        dbsnp_idx = Channel.value(file(params.dbsnp_index))
         FASTQC(reads_ch)
-        MULTIQC(FASTQC.out.zip.map { it[1] }.collect())
+        MULTIQC(Channel.fromPath("${params.outdir}/fastqc/*.zip").collect())
         TRIM_GALORE(reads_ch)
-        BWA_MEM2(TRIM_GALORE.out.trimmed_reads, genome_ch, index_ch)
-        MARKDUPLICATES(BWA_MEM2.out.bam.join(BWA_MEM2.out.bai))
+        BWA_MEM(TRIM_GALORE.out.trimmed_reads, genome_ch, index_ch)
+        MARKDUPLICATES(BWA_MEM.out.bam.join(BWA_MEM.out.bai))
         BQSR(
             MARKDUPLICATES.out.bam.join(MARKDUPLICATES.out.bai),
             genome_ch, index_ch, dict_ch, dbsnp_ch, dbsnp_idx
