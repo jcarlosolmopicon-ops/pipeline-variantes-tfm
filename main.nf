@@ -57,9 +57,9 @@ workflow {
         index_ch  = Channel.fromPath("${params.genome}.*").collect()
         dict_ch   = Channel.value(file(params.genome.replace('.fa', '.dict')))
         tumor_ch  = Channel.fromPath("${params.outdir}/bqsr/SRR7890824.bqsr.bam")
-            .map { bam -> [ [id: 'tumor'],  bam, file("${bam}.bai") ] }
+            .map { bam -> [ [id: 'SRR7890824'], bam, file("${bam}.bai") ] }
         normal_ch = Channel.fromPath("${params.outdir}/bqsr/SRR7890827.bqsr.bam")
-            .map { bam -> [ [id: 'normal'], bam, file("${bam}.bai") ] }
+            .map { bam -> [ [id: 'SRR7890827'], bam, file("${bam}.bai") ] }
         MUTECT2(tumor_ch, normal_ch, genome_ch, index_ch, dict_ch)
         VEP(MUTECT2.out.vcf_filtered)
     }
