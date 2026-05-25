@@ -30,7 +30,7 @@ workflow {
 
     if (params.step == 'qc') {
         FASTQC(reads_ch)
-        MULTIQC(Channel.fromPath("${params.outdir}/fastqc/*.zip").collect())
+        MULTIQC(FASTQC.out.zip.map { it[1] }.collect())
     }
 
     if (params.step == 'trim') {
@@ -56,11 +56,12 @@ workflow {
         genome_ch = Channel.value(file(params.genome))
         index_ch  = Channel.fromPath("${params.genome}.*").collect()
         dict_ch   = Channel.value(file(params.genome.replace('.fa', '.dict')))
-        tumor_ch  = Channel.fromPath("${params.outdir}/bqsr/tumor.bqsr.bam")
+        tumor_ch  = Channel.fromPath("${params.outdir}/bqsr/SRR7890824.bqsr.bam")
             .map { bam -> [ [id: 'tumor'],  bam, file("${bam}.bai") ] }
-        normal_ch = Channel.fromPath("${params.outdir}/bqsr/normal.bqsr.bam")
+        normal_ch = Channel.fromPath("${params.outdir}/bqsr/SRR7890827.bqsr.bam")
             .map { bam -> [ [id: 'normal'], bam, file("${bam}.bai") ] }
         MUTECT2(tumor_ch, normal_ch, genome_ch, index_ch, dict_ch)
+        VEP(MUTECT2.out.vcf_filtered)
     }
 
     if (params.step == 'annotate') {
@@ -75,7 +76,7 @@ workflow {
         dbsnp_ch  = Channel.value(file(params.dbsnp))
         dbsnp_idx = Channel.value(file(params.dbsnp_index))
         FASTQC(reads_ch)
-        MULTIQC(Channel.fromPath("${params.outdir}/fastqc/*.zip").collect())
+        MULTIQC(FASTQC.out.zip.map { it[1] }.collect())
         TRIM_GALORE(reads_ch)
         BWA_MEM(TRIM_GALORE.out.trimmed_reads, genome_ch, index_ch)
         MARKDUPLICATES(BWA_MEM.out.bam.join(BWA_MEM.out.bai))
