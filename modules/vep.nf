@@ -3,6 +3,7 @@ process VEP {
     label 'vep'
     publishDir "${params.outdir}/vep", mode: 'copy'
     conda 'bioconda::ensembl-vep=110.1'
+    container 'ensemblorg/ensembl-vep:release_110.1'
     errorStrategy 'ignore'
     input:
     path vcf
@@ -19,7 +20,7 @@ process VEP {
         --compress_output bgzip \\
         --assembly GRCh38 \\
         --cache \\
-        --dir_cache \$HOME/.vep \\
+        --dir_cache /home/olmop/.vep \\
         --species homo_sapiens \\
         --everything \\
         --fork ${task.cpus}
