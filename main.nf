@@ -56,10 +56,10 @@ workflow {
         genome_ch = Channel.value(file(params.genome))
         index_ch  = Channel.fromPath("${params.genome}.*").collect()
         dict_ch   = Channel.value(file(params.genome.replace('.fa', '.dict')))
-        tumor_ch  = Channel.fromPath("${params.outdir}/bqsr/SRR7890824.bqsr.bam")
-            .map { bam -> [ [id: 'SRR7890824'], bam, file("${bam}.bai") ] }
-        normal_ch = Channel.fromPath("${params.outdir}/bqsr/SRR7890827.bqsr.bam")
-            .map { bam -> [ [id: 'SRR7890827'], bam, file("${bam}.bai") ] }
+        tumor_ch  = Channel.fromPath("${params.outdir}/bqsr/${params.tumor_id}.bqsr.bam")
+            .map { bam -> [ [id: params.tumor_id], bam, file("${bam}.bai") ] }
+        normal_ch = Channel.fromPath("${params.outdir}/bqsr/${params.normal_id}.bqsr.bam")
+            .map { bam -> [ [id: params.normal_id], bam, file("${bam}.bai") ] }
         MUTECT2(tumor_ch, normal_ch, genome_ch, index_ch, dict_ch)
         VEP(MUTECT2.out.vcf_filtered)
     }
@@ -85,8 +85,8 @@ workflow {
             genome_ch, index_ch, dict_ch, dbsnp_ch, dbsnp_idx
         )
         bqsr_ch   = BQSR.out.bam.join(BQSR.out.bai)
-        tumor_ch  = bqsr_ch.filter { it[0].id == 'tumor' }
-        normal_ch = bqsr_ch.filter { it[0].id == 'normal' }
+        tumor_ch  = bqsr_ch.filter { it[0].id == params.tumor_id }
+        normal_ch = bqsr_ch.filter { it[0].id == params.normal_id }
         MUTECT2(tumor_ch, normal_ch, genome_ch, index_ch, dict_ch)
         VEP(MUTECT2.out.vcf_filtered)
     }
