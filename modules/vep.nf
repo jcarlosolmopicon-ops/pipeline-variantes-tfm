@@ -20,9 +20,16 @@ process VEP {
         --compress_output bgzip \\
         --assembly GRCh38 \\
         --cache \\
+        --offline \\
         --dir_cache /home/olmop/.vep \\
         --species homo_sapiens \\
-        --everything \\
+        --sift b \\
+        --polyphen b \\
+        --symbol \\
+        --numbers \\
+        --biotype \\
+        --canonical \\
+        --variant_class \\
         --fork ${task.cpus}
     """
 }
