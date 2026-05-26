@@ -3,6 +3,7 @@ process MUTECT2 {
     label 'gatk'
     publishDir "${params.outdir}/mutect2", mode: 'copy'
     conda 'bioconda::gatk4=4.5.0.0'
+    container 'broadinstitute/gatk:4.5.0.0'
     errorStrategy 'ignore'
     input:
     tuple val(tumor_meta),  path(tumor_bam),  path(tumor_bai)
@@ -17,13 +18,13 @@ process MUTECT2 {
     path "somatic.filtered.vcf.gz", emit: vcf_filtered
     script:
     """
-    gatk --java-options "-Xmx24g" Mutect2 \\
+    gatk --java-options "-Xmx16g" Mutect2 \\
         -R ${genome} \\
         -I ${tumor_bam}  --tumor-sample  ${tumor_meta.id} \\
         -I ${normal_bam} --normal-sample ${normal_meta.id} \\
         --native-pair-hmm-threads ${task.cpus} \\
         -O somatic.vcf.gz
-    gatk --java-options "-Xmx24g" FilterMutectCalls \\
+    gatk --java-options "-Xmx16g" FilterMutectCalls \\
         -R ${genome} \\
         -V somatic.vcf.gz \\
         --stats somatic.vcf.gz.stats \\

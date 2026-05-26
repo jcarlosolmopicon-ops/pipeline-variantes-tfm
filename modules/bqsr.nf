@@ -1,8 +1,9 @@
 process BQSR {
     tag "${meta.id}"
     label 'gatk'
-    publishDir "${params.outdir}/bqsr", mode: 'copy'
+    publishDir "${params.outdir}/bqsr", mode: 'symlink'
     conda 'bioconda::gatk4=4.5.0.0 bioconda::samtools=1.19'
+    container 'broadinstitute/gatk:4.5.0.0'
     errorStrategy 'ignore'
     input:
     tuple val(meta), path(bam), path(bai)
@@ -17,12 +18,12 @@ process BQSR {
     path "${meta.id}.recal.table",                     emit: table
     script:
     """
-    gatk --java-options "-Xmx24g" BaseRecalibrator \\
+    gatk --java-options "-Xmx16g" BaseRecalibrator \\
         -I ${bam} \\
         -R ${genome} \\
         --known-sites ${dbsnp} \\
         -O ${meta.id}.recal.table
-    gatk --java-options "-Xmx24g" ApplyBQSR \\
+    gatk --java-options "-Xmx16g" ApplyBQSR \\
         -I ${bam} \\
         -R ${genome} \\
         --bqsr-recal-file ${meta.id}.recal.table \\

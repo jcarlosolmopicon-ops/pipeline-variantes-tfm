@@ -1,18 +1,13 @@
 process MULTIQC {
+    tag "multiqc"
     label 'low_cpu'
     publishDir "${params.outdir}/multiqc", mode: 'copy'
-
-    conda 'bioconda::multiqc=1.21 conda-forge::lzstring'
-    errorStrategy 'ignore'
     container 'multiqc/multiqc:v1.21'
-
     input:
-    path(reports)
-
+    path zips
     output:
-    path("multiqc_report.html"), emit: report
-    path("multiqc_report_data/"), emit: data
-
+    path "multiqc_report.html", emit: report
+    path "multiqc_report_data", emit: data
     script:
     """
     multiqc . --filename multiqc_report.html

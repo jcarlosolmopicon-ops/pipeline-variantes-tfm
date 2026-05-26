@@ -1,8 +1,9 @@
 process MARKDUPLICATES {
     tag "${meta.id}"
     label 'gatk'
-    publishDir "${params.outdir}/markdup", mode: 'copy'
+    publishDir "${params.outdir}/markdup", mode: 'symlink'
     conda 'bioconda::gatk4=4.5.0.0 bioconda::samtools=1.19'
+    container 'broadinstitute/gatk:4.5.0.0'
     errorStrategy 'ignore'
     input:
     tuple val(meta), path(bam), path(bai)
@@ -12,7 +13,7 @@ process MARKDUPLICATES {
     path "${meta.id}.markdup.metrics",                    emit: metrics
     script:
     """
-    gatk --java-options "-Xmx24g" MarkDuplicates \\
+    gatk --java-options "-Xmx16g" MarkDuplicates \\
         -I ${bam} \\
         -O ${meta.id}.markdup.bam \\
         -M ${meta.id}.markdup.metrics \\
