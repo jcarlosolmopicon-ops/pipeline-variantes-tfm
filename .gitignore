@@ -36,3 +36,7 @@ __pycache__/
 .DS_Store
 Thumbs.db
 resultados/exp01/
+version?current=*
+Miniforge3-*.sh
+*.config.save
+FASTQC*
