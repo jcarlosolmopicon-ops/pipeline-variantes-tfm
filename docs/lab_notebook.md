@@ -424,3 +424,99 @@ Conversion SRR7890827 (muestra normal, 70 GB) con temporales en C::
       --mem 14GB \
       --temp ~/tmp-fasterq/ \
       --outdir /mnt/k/TFM-bioinformatica/datos-raw/HCC1395
+
+---
+
+## NB-XX — Validacion con hap.py contra truth set SEQC2 (HCC1395)
+
+### Objetivo
+Evaluar precision/recall del pipeline (MuTect2 + filtros) frente al
+truth set HighConf/MedConf de SEQC2 (39.536 SNVs + 2.020 INDELs).
+
+### Entorno
+- hap.py no disponible via conda/pkrusche (imagen Docker obsoleta,
+  manifest v1 no soportado por containerd >= 2.1)
+- Usada imagen alternativa: jmcdani20/hap.py:v0.3.12
+
+### Preparacion del truth set
+El truth set SEQC2 (highconf_sSNV.vcf.gz + highconf_sINDEL.vcf.gz)
+no es directamente compatible con hap.py por dos motivos:
+
+1. **Sin columna FORMAT/sample**: hap.py requiere genotipos.
+   Solucion: anadir sample dummy "TRUTH" con GT.
+2. **FILTER invalido**: el campo FILTER contiene valores compuestos
+   ("PASS;HighConf", "PASS;MedConf"), no validos en VCF estandar.
+   hap.py interpreta estos registros como "no PASS" y los descarta
+   (TRUTH.TOTAL=0 en primer intento).
+
+Pasos aplicados:
+    # 1. Concatenar SNV + INDEL truth sets
+    bcftools concat -a highconf_sSNV.vcf.gz highconf_sINDEL.vcf.gz \
+      -O z -o truth.vcf.gz
+
+    # 2. Normalizar FILTER a PASS (todas las variantes son
+    #    HighConf o MedConf, ambas validas)
+    zcat truth.vcf.gz | awk 'BEGIN{OFS="\t"}
+      /^#/{print; next}
+      {$7="PASS"; print}' | bgzip > truth.fixed.vcf.gz
+
+    # 3. Reconstruir cabecera: contigs completos (tomados del VCF
+    #    de mutect2, que ya tiene ##contig de GRCh38) + ##FORMAT GT
+    zcat somatic.filtered.vcf.gz | grep "^##contig" > contigs.txt
+    {
+      grep "^##fileformat" truth_header_noctig.txt
+      cat contigs.txt
+      grep "^##" truth_header_noctig.txt | grep -v "^##fileformat"
+      echo '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">'
+    } > new_header.txt
+
+    # 4. Anadir sample TRUTH con GT 0/1 (heterocigoto, esperado
+    #    para variantes somaticas; GT 1/1 dio TP=0)
+    {
+      cat new_header.txt
+      zcat truth.fixed.vcf.gz | awk 'BEGIN{OFS="\t"}
+        /^#CHROM/{print $0,"FORMAT","TRUTH"; next}
+        /^#/{next}
+        {print $0,"GT","0/1"}'
+    } | bgzip > truth.gt.vcf.gz
+    tabix -p vcf truth.gt.vcf.gz
+
+### Comando hap.py
+    docker run -it --rm \
+      -v ~/pipeline-variantes:/data \
+      jmcdani20/hap.py:v0.3.12 /opt/hap.py/bin/hap.py \
+      /data/resultados/exp03_run_completa/happy/truth.gt.vcf.gz \
+      /data/resultados/exp03_run_completa/mutect2/somatic.filtered.vcf.gz \
+      -f /data/datos-raw/HCC1395/truth_set/highconf_regions.bed \
+      -r /data/datos-raw/referencia/GRCh38.fa \
+      -o /data/resultados/exp03_run_completa/happy/seqc2_eval \
+      --pass-only
+
+### Resultados (somatic.filtered.vcf.gz vs SEQC2 truth set)
+| Tipo  | TRUTH.TOTAL | TP    | FN   | Recall | Precision | F1    |
+|-------|-------------|-------|------|--------|-----------|-------|
+| SNP   | 39447       | 35453 | 3994 | 0.8988 | 0.9781    | 0.9367|
+| INDEL | 1625        | 1412  | 213  | 0.8689 | 0.6054    | 0.7136|
+
+### Interpretacion
+- SNVs: alta precision (97.8%) y buen recall (89.9%) -> resultado
+  solido, comparable a benchmarks publicados de MuTect2 en HCC1395.
+- INDELs: recall aceptable (86.9%) pero precision baja (60.5%),
+  esperado en MuTect2 sin filtros especificos de indels adicionales
+  (ej. realineacion local agresiva, panel of normals).
+- Frac_NA alta (54-79%) refleja variantes del query fuera de las
+  regiones highconf_regions.bed (zona no evaluable, no FP reales).
+
+### Salidas generadas
+resultados/exp03_run_completa/happy/
+  seqc2_eval.summary.csv
+  seqc2_eval.extended.csv
+  seqc2_eval.vcf.gz (+ .tbi)
+  seqc2_eval.roc.*.csv.gz
+  seqc2_eval.runinfo.json
+  truth.gt.vcf.gz (+ .tbi)  # truth set corregido, reproducible
+
+### Proximo paso
+Redactar seccion 5 (Resultados) y 6 (Conclusiones) del TFM con
+estas metricas. Decidir alcance del modulo ML (RF/XGBoost, Exp02)
+segun tiempo disponible hasta deposito (20 junio).
