@@ -1,0 +1,24 @@
+{
+  "n_total_variants": 3598760,
+  "n_model_variants": 3598760,
+  "n_train": 2964279,
+  "n_test": 634481,
+  "n_train_cases": 8236,
+  "n_test_cases": 2059,
+  "label_distribution": {
+    "1": 2258599,
+    "0": 1340161
+  },
+  "features": [
+    "SIFT_score",
+    "PolyPhen_score",
+    "SIFT_missing",
+    "PolyPhen_missing",
+    "VAF",
+    "t_depth",
+    "n_depth",
+    "COSMIC_present",
+    "indel_len",
+    "Variant_Type"
+  ]
+}

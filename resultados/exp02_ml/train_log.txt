@@ -1,0 +1,75 @@
+Leyendo MAF: datos-raw/TCGA-LUAD/TCGA-LUAD.mutect2.GRCh38.maf.gz
+Filas leidas: 3,598,760
+Filas tras filtrar clases: 3,598,760
+Filas tras dropna VAF/t_depth: 3,598,760 (eliminadas 0)
+Distribucion de label:
+label
+1    2258599
+0    1340161
+Name: count, dtype: int64
+Numero de casos (Tumor_Sample_Barcode): 10295
+Train: 2,964,279 variantes, 8236 casos
+Test:  634,481 variantes, 2059 casos
+
+=== RandomForest: validacion cruzada (5-fold, stratified by group) ===
+{
+  "roc_auc": {
+    "mean": 0.9588443954952434,
+    "std": 0.0018907351467238318
+  },
+  "precision": {
+    "mean": 0.9897127492311224,
+    "std": 0.0016319313181151352
+  },
+  "recall": {
+    "mean": 0.8955378931806367,
+    "std": 0.003945339936225539
+  },
+  "f1": {
+    "mean": 0.9402689888766597,
+    "std": 0.0024981753552755256
+  }
+}
+
+RandomForest - Test set (held-out cases):
+{
+  "roc_auc": 0.9594511517400082,
+  "precision": 0.988657918273877,
+  "recall": 0.8967534359427745,
+  "f1": 0.940465732532396
+}
+
+=== XGBoost: validacion cruzada (5-fold, stratified by group) ===
+{
+  "roc_auc": {
+    "mean": 0.9587630092050375,
+    "std": 0.0019010789418009487
+  },
+  "precision": {
+    "mean": 0.9861896974384339,
+    "std": 0.002057071800554892
+  },
+  "recall": {
+    "mean": 0.9000949334710716,
+    "std": 0.004974119027922851
+  },
+  "f1": {
+    "mean": 0.9411702183204362,
+    "std": 0.0030107983799038097
+  }
+}
+
+XGBoost - Test set (held-out cases):
+{
+  "roc_auc": 0.9595597537771143,
+  "precision": 0.9851651834594265,
+  "recall": 0.9017013944703424,
+  "f1": 0.9415873174070922
+}
+
+=== RESUMEN FINAL ===
+       model  test_roc_auc  test_precision  test_recall  test_f1
+RandomForest        0.9595          0.9887       0.8968   0.9405
+     XGBoost        0.9596          0.9852       0.9017   0.9416
+
+Resultados guardados en resultados/exp02_ml
