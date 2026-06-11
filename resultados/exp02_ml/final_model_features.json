@@ -1,0 +1,32 @@
+{
+  "numeric_features": [
+    "SIFT_score",
+    "PolyPhen_score",
+    "SIFT_missing",
+    "PolyPhen_missing",
+    "VAF",
+    "t_depth",
+    "n_depth",
+    "indel_len"
+  ],
+  "categorical_features": [
+    "Variant_Type"
+  ],
+  "feature_cols": [
+    "SIFT_score",
+    "PolyPhen_score",
+    "SIFT_missing",
+    "PolyPhen_missing",
+    "VAF",
+    "t_depth",
+    "n_depth",
+    "indel_len",
+    "Variant_Type"
+  ],
+  "n_training_rows": 3598760,
+  "label_distribution": {
+    "1": 2258599,
+    "0": 1340161
+  },
+  "note": "Modelo final entrenado sobre todo TCGA-LUAD, sin COSMIC (no disponible en VEP offline para HCC1395). Validacion de generalizacion ya realizada en train_ml_module.py (holdout por caso, AUC~0.96)."
+}

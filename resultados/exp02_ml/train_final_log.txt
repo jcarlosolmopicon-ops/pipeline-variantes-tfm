@@ -1,0 +1,11 @@
+Leyendo MAF: datos-raw/TCGA-LUAD/TCGA-LUAD.mutect2.GRCh38.maf.gz
+Filas leidas: 3,598,760
+Filas tras dropna: 3,598,760 (eliminadas 0)
+
+Entrenando RandomForest sobre todo el dataset (3,598,760 filas)...
+Guardado en resultados/exp02_ml/model_RandomForest.joblib
+
+Entrenando XGBoost sobre todo el dataset (3,598,760 filas)...
+Guardado en resultados/exp02_ml/model_XGBoost.joblib
+
+Listo.
