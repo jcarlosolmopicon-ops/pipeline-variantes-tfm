@@ -7,6 +7,8 @@ TFM — Máster Universitario en Bioinformática, UAX
 Pipeline reproducible en Nextflow DSL2 para la detección de variantes somáticas a partir de datos de secuenciación de exoma completo (WES) tumor-normal, con un módulo de clasificación patogénica mediante Random Forest y XGBoost entrenado sobre TCGA-LUAD (en desarrollo).
 
 ## Estructura del repositorio
+
+```
 pipeline-variantes/
 ├── config/                    # Perfiles de configuración (local/Docker, HPC/SLURM)
 ├── modules/                   # Módulos Nextflow DSL2 (fastqc, bwa, bqsr, mutect2, vep, etc.)
@@ -19,6 +21,7 @@ pipeline-variantes/
 │   └── exp03_run_completa/     # Pipeline completo sobre HCC1395 (FastQC→VEP→hap.py)
 ├── main.nf                     # Pipeline principal
 └── nextflow.config             # Configuración principal (perfiles local/conda_local)
+```
 ## Requisitos
 
 - Nextflow >= 25.10.4
