@@ -1,0 +1,5 @@
+Module	Section	Sample Name	Source
+FastQC	all_sections	SRR7890827_2	/home/olmop/pipeline-variantes/datos-intermedios/nextflow-work/fb/e756ca41f093aadb35fa0c08281ab9/SRR7890827_2_fastqc.zip
+FastQC	all_sections	SRR7890824_2	/home/olmop/pipeline-variantes/datos-intermedios/nextflow-work/fb/e756ca41f093aadb35fa0c08281ab9/SRR7890824_2_fastqc.zip
+FastQC	all_sections	SRR7890824_1	/home/olmop/pipeline-variantes/datos-intermedios/nextflow-work/fb/e756ca41f093aadb35fa0c08281ab9/SRR7890824_1_fastqc.zip
+FastQC	all_sections	SRR7890827_1	/home/olmop/pipeline-variantes/datos-intermedios/nextflow-work/fb/e756ca41f093aadb35fa0c08281ab9/SRR7890827_1_fastqc.zip

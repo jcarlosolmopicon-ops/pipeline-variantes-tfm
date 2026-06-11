@@ -40,3 +40,13 @@ version?current=*
 Miniforge3-*.sh
 *.config.save
 FASTQC*
+
+# Resultados pesados de exp03 (BAMs intermedios y FASTQs trimados)
+resultados/exp03_run_completa/bam/
+resultados/exp03_run_completa/bqsr/
+resultados/exp03_run_completa/trim/
+resultados/exp03_run_completa/markdup/*.bam
+
+# Resultados de pruebas/desarrollo (no finales)
+resultados/test/
+resultados/test_all/
