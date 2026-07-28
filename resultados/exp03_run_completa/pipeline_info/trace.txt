@@ -1,0 +1,3 @@
+task_id	hash	native_id	name	status	exit	submit	duration	realtime	%cpu	peak_rss	peak_vmem	rchar	wchar
+1	ed/39d635	2519828	MUTECT2 (SRR7890824_vs_SRR7890827)	CACHED	0	2026-05-25 13:52:29.116	10h 39m 52s	10h 39m 51s	367.5%	5.3 GB	21.1 GB	286.6 GB	58.4 MB
+2	ec/27bcab	1812961	VEP (vep_annotation)	COMPLETED	0	2026-05-26 22:30:51.480	1m 6s	1m 6s	529.0%	971.3 MB	1.7 GB	3.6 GB	695.9 MB
