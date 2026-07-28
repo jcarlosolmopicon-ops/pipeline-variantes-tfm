@@ -6,7 +6,7 @@ como del VCF anotado de HCC1395 (sin COSMIC, no disponible en VEP
 offline para HCC1395 - ver seccion 4 del TFM).
 
 Los modelos entrenados se serializan para su aplicacion posterior
-sobre resultados/exp03_run_completa/vep/annotated.vcf.gz
+sobre resultados/exp03/vep/annotated.vcf.gz
 (scripts/apply_model_hcc1395.py).
 """
 

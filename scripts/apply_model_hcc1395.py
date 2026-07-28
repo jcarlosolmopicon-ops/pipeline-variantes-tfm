@@ -2,7 +2,7 @@
 """
 Aplica los modelos RF/XGBoost entrenados sobre TCGA-LUAD
 (scripts/train_final_model.py) a las variantes anotadas de HCC1395
-(resultados/exp03_run_completa/vep/annotated.vcf.gz).
+(resultados/exp03/vep/annotated.vcf.gz).
 
 Extrae para cada variante: SIFT, PolyPhen (del bloque CSQ de VEP,
 transcrito CANONICAL si existe, si no el primero), VAF/t_depth/n_depth
@@ -22,7 +22,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
-VCF_PATH = "resultados/exp03_run_completa/vep/annotated.vcf.gz"
+VCF_PATH = "resultados/exp03/vep/annotated.vcf.gz"
 OUT_DIR = "resultados/exp02_ml"
 MODEL_DIR = "resultados/exp02_ml"
 

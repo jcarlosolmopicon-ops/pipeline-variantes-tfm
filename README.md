@@ -18,7 +18,7 @@ pipeline-variantes/
 ├── docs/                       # Lab notebook, ADRs y documentación técnica
 ├── entorno/                    # environment.yml (Conda)
 ├── resultados/
-│   └── exp03_run_completa/     # Pipeline completo sobre HCC1395 (FastQC→VEP→hap.py)
+│   └── exp03/     # Pipeline completo sobre HCC1395 (FastQC→VEP→hap.py)
 ├── main.nf                     # Pipeline principal
 └── nextflow.config             # Configuración principal (perfiles local/conda_local)
 ```
@@ -40,7 +40,7 @@ conda activate tfm-variantes
 ```bash
 nextflow run main.nf -profile local \
   --input "datos-raw/HCC1395/*_{1,2}.fastq.gz" \
-  --outdir resultados/exp03_run_completa \
+  --outdir resultados/exp03 \
   --step all \
   -resume
 ```
@@ -49,7 +49,7 @@ nextflow run main.nf -profile local \
 
 | ID | Descripción | Estado |
 |----|-------------|--------|
-| exp03_run_completa | Pipeline completo sobre par tumor-normal SEQC2/HCC1395 (FastQC, BWA, BQSR, MuTect2, VEP) + validación hap.py contra truth set SEQC2 | Completado |
+| exp03 | Pipeline completo sobre par tumor-normal SEQC2/HCC1395 (FastQC, BWA, BQSR, MuTect2, VEP) + validación hap.py contra truth set SEQC2 | Completado |
 | Módulo ML (TCGA-LUAD) | Clasificación de patogenicidad con Random Forest/XGBoost sobre variantes de TCGA-LUAD (liftover GRCh38 completado, 99.99%) | Pendiente |
 
 ### Resultados de validación (hap.py vs. truth set SEQC2/HCC1395)

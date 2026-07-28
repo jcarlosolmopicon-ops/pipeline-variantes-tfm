@@ -485,11 +485,11 @@ Pasos aplicados:
     docker run -it --rm \
       -v ~/pipeline-variantes:/data \
       jmcdani20/hap.py:v0.3.12 /opt/hap.py/bin/hap.py \
-      /data/resultados/exp03_run_completa/happy/truth.gt.vcf.gz \
-      /data/resultados/exp03_run_completa/mutect2/somatic.filtered.vcf.gz \
+      /data/resultados/exp03/happy/truth.gt.vcf.gz \
+      /data/resultados/exp03/mutect2/somatic.filtered.vcf.gz \
       -f /data/datos-raw/HCC1395/truth_set/highconf_regions.bed \
       -r /data/datos-raw/referencia/GRCh38.fa \
-      -o /data/resultados/exp03_run_completa/happy/seqc2_eval \
+      -o /data/resultados/exp03/happy/seqc2_eval \
       --pass-only
 
 ### Resultados (somatic.filtered.vcf.gz vs SEQC2 truth set)
@@ -508,7 +508,7 @@ Pasos aplicados:
   regiones highconf_regions.bed (zona no evaluable, no FP reales).
 
 ### Salidas generadas
-resultados/exp03_run_completa/happy/
+resultados/exp03/happy/
   seqc2_eval.summary.csv
   seqc2_eval.extended.csv
   seqc2_eval.vcf.gz (+ .tbi)
