@@ -54,3 +54,9 @@ resultados/test_all/
 
 # Excepcion: modelos finales del modulo ML (pequeños, documentan el TFM)
 !resultados/exp02_ml/*.joblib
+
+# Corridas de desarrollo previas (superadas por exp03_run_completa)
+resultados/exp01/bam/
+resultados/exp01/bqsr/
+resultados/exp01/markdup/*.bam
+resultados/exp01/markdup/*.bai
