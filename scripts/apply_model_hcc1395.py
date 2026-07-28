@@ -23,8 +23,8 @@ import numpy as np
 import pandas as pd
 
 VCF_PATH = "resultados/exp03/vep/annotated.vcf.gz"
-OUT_DIR = "resultados/exp02_ml"
-MODEL_DIR = "resultados/exp02_ml"
+OUT_DIR = "resultados/exp04"
+MODEL_DIR = "resultados/exp04"
 
 NUMERIC_FEATURES = [
     "SIFT_score", "PolyPhen_score", "SIFT_missing", "PolyPhen_missing",

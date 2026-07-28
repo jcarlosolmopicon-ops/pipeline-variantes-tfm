@@ -27,7 +27,7 @@ from sklearn.metrics import (roc_auc_score, precision_score, recall_score,
 import xgboost as xgb
 
 MAF_PATH = "datos-raw/TCGA-LUAD/TCGA-LUAD.mutect2.GRCh38.maf.gz"
-OUT_DIR = "resultados/exp02_ml"
+OUT_DIR = "resultados/exp04"
 
 COLS = [
     "Hugo_Symbol", "Variant_Classification", "Variant_Type",
