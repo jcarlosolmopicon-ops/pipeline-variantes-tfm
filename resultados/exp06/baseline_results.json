@@ -1,0 +1,29 @@
+{
+  "model": "LogisticRegression (baseline)",
+  "features": [
+    "SIFT_score",
+    "PolyPhen_score",
+    "SIFT_missing",
+    "PolyPhen_missing",
+    "VAF",
+    "t_depth",
+    "n_depth",
+    "COSMIC_present",
+    "indel_len",
+    "Variant_Type"
+  ],
+  "n_train_rows": 2964279,
+  "n_test_rows": 634481,
+  "cv": {
+    "roc_auc": 0.9559449517175889,
+    "precision": 0.9787831661823809,
+    "recall": 0.9036628164377088,
+    "f1": 0.9397148534998452
+  },
+  "test": {
+    "roc_auc": 0.9565349513255318,
+    "precision": 0.9780394092142832,
+    "recall": 0.9059486015110111,
+    "f1": 0.9406147278604221
+  }
+}
