@@ -1,6 +1,14 @@
 # Lab Notebook — Pipeline Variantes Somaticas
 ## Registro tecnico de sesiones de trabajo
-## Repo: ~/pipeline-variantes | Maquina: DESKTOP-QK2T4QJ (WSL2 Ubuntu)
+## Repo: ~/pipeline-variantes
+
+> **Entornos de ejecucion.** El proyecto se desarrollo en dos entornos sucesivos. Las
+> entradas NB-001 a NB-006 corresponden a la fase inicial sobre **Windows 11 con WSL2**
+> (maquina DESKTOP-QK2T4QJ), con los datos pesados en un disco externo K: montado via
+> drvfs. Durante la ejecucion completa del pipeline se migro a **Ubuntu nativo en
+> arranque dual** (maquina olmop-MS-7E26), por los motivos que se detallan en NB-007.
+> Todos los resultados descritos en la memoria (exp03 a exp06) se obtuvieron en el
+> segundo entorno.
 
 ---
 
@@ -209,6 +217,9 @@ normal) por mayor relevancia clinica y disponibilidad de truth set de referencia
   Solucion: anadir --max-size 100GB
 - MAF GDC era GRCh37 legacy. GDC GRCh38 ya no distribuye MAF agregado.
   Solucion: liftover con CrossMap v0.7.3
+
+  NOTA (agosto 2026): la version finalmente empleada en el liftover definitivo fue
+  CrossMap v0.7.2. Ver docs/liftover_GRCh37_to_GRCh38.md.
 - TCGAbiolinks: conflicto de dependencias con Conda.
   Solucion: descartado en favor de CrossMap.
 - Lock file SRR7890827.sra.lock al cerrar terminal.
@@ -520,3 +531,93 @@ resultados/exp03/happy/
 Redactar seccion 5 (Resultados) y 6 (Conclusiones) del TFM con
 estas metricas. Decidir alcance del modulo ML (RF/XGBoost, Exp02)
 segun tiempo disponible hasta deposito (20 junio).
+
+---
+
+## Entrada NB-007 — Migracion de WSL2 a Ubuntu nativo (arranque dual)
+
+**Fecha:** 20 de mayo de 2026
+**Maquina origen:** DESKTOP-QK2T4QJ (Windows 11 + WSL2 Ubuntu)
+**Maquina destino:** olmop-MS-7E26 (Ubuntu nativo, arranque dual junto a Windows)
+**Estado:** Completado
+
+### Contexto
+
+La migracion se decidio **durante la ejecucion completa del pipeline sobre el par
+HCC1395/HCC1395BL**, no antes. La corrida se interrumpio de forma repetida por
+agotamiento de memoria y por inestabilidad general del entorno, lo que impedia
+completar las etapas mas exigentes (alineamiento y MuTect2) en una sola ejecucion.
+
+### Problemas acumulados en WSL2
+
+1. **Gestion de memoria.** WSL2 opera sobre una maquina virtual ligera con memoria
+   asignada dinamicamente. Bajo carga sostenida, procesos como BWA-MEM2 y GATK
+   alcanzaban el limite disponible y morian por OOM, sin que el ajuste de .wslconfig
+   resolviera el problema de forma fiable.
+
+2. **Rendimiento de E/S sobre drvfs.** Los datos pesados residian en el disco externo
+   K:, montado mediante drvfs. El acceso a ficheros grandes a traves de esa capa de
+   traduccion es sustancialmente mas lento que sobre un sistema de ficheros nativo, y
+   varias herramientas (sra-tools entre ellas) fallaban directamente al intentar
+   escribir en esa ruta.
+
+3. **Espacio y crecimiento del VHDX.** El disco virtual ext4.vhdx crece de forma
+   dinamica pero no se compacta solo, lo que obligaba a intervenciones manuales
+   periodicas (ver NB-006). Con volumenes de cientos de gigabytes, la gestion del
+   espacio se convirtio en una tarea recurrente en lugar de un detalle de instalacion.
+
+Ninguno de los tres problemas era insalvable por separado. En conjunto hacian que cada
+ejecucion larga fuese una fuente de fallos, y la reproducibilidad del pipeline, que es
+uno de los objetivos declarados del trabajo, quedaba comprometida por el entorno.
+
+### Decision
+
+Instalar **Ubuntu en arranque dual** junto a Windows, en lugar de seguir ajustando la
+configuracion de WSL2. Se descarto la maquina virtual completa por la penalizacion de
+rendimiento, y el arranque dual permitia conservar Windows para el resto de tareas.
+
+### Pasos ejecutados
+
+    # 1. Instalacion de Ubuntu en particion propia (arranque dual)
+    # 2. Reinstalacion del stack: Java 17, Nextflow, Miniconda, Docker
+    # 3. Recreacion del entorno Conda
+    conda env create -f entorno/environment.yml
+    conda activate tfm-variantes
+
+    # 4. Clonado del repositorio desde GitHub
+    git clone https://github.com/jcarlosolmopicon-ops/pipeline-variantes-tfm.git
+
+    # 5. Traslado de los datos pesados al almacenamiento nativo (ext4 sobre NVMe)
+    #    Verificacion de integridad tras la copia
+    gzip -t datos-raw/HCC1395/*.fastq.gz
+
+    # 6. Relanzamiento del pipeline
+    nextflow run main.nf -profile local --step all -resume
+
+### Resultado
+
+La ejecucion completa termino sin interrupciones. Los tiempos mejoraron de forma
+apreciable al eliminar la capa drvfs, aunque la etapa de MuTect2 siguio siendo el
+cuello de botella del flujo (mas de 10 horas sobre el par completo).
+
+### Consecuencias para el resto del proyecto
+
+- La estrategia de almacenamiento descrita en NB-004 y en docs/almacenamiento_datos.md
+  (montaje de K:, temporales en C:, compactacion del VHDX) **deja de aplicar**. Todos
+  los datos residen a partir de aqui en el sistema de ficheros nativo.
+- Se descarto definitivamente **BWA-MEM2** en favor de BWA 0.7.17 clasico. Aunque el
+  cambio de entorno alivio la presion de memoria, BWA-MEM2 seguia mostrando un perfil
+  de consumo poco predecible para el volumen de datos de este trabajo.
+- Todos los resultados reportados en la memoria (exp03, exp04, exp05 y exp06) se
+  obtuvieron en este entorno.
+
+### Configuracion final
+
+| Elemento | Valor |
+|----------|-------|
+| Sistema | Ubuntu (arranque dual junto a Windows 11) |
+| Hostname | olmop-MS-7E26 |
+| CPUs asignadas al pipeline | 12 |
+| Memoria asignada al pipeline | 28 GB |
+| Almacenamiento | NVMe, ext4 nativo |
+| Perfil de ejecucion | local (Docker) |

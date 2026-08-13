@@ -1,5 +1,13 @@
 # Guia de descarga de datos
-## Actualizado: 25 de abril de 2026
+## Actualizado: 25 de abril de 2026 (revisado en agosto de 2026)
+
+> **Nota sobre el entorno.** Este documento se redacto durante la fase inicial del
+> proyecto, sobre Windows 11 con WSL2 y un disco externo K: montado via drvfs. Durante
+> la ejecucion completa del pipeline el proyecto migro a **Ubuntu nativo en arranque
+> dual** (ver NB-007 del lab notebook), donde los datos residen en el sistema de
+> ficheros nativo y no hay disco externo que montar. Los comandos de descarga siguen
+> siendo validos; las rutas de tipo /mnt/k/ deben sustituirse por las rutas del
+> repositorio (datos-raw/), y el montaje inicial de K: ya no es necesario.
 
 ---
 
@@ -7,7 +15,7 @@
 
     # Versiones requeridas
     sra-tools >= 3.1.1   # IMPORTANTE: v2.9.6 falla con error SSL
-    crossmap >= 0.7.3
+    crossmap >= 0.7.2
     conda activate tfm-variantes
 
     # Montar disco externo K: antes de cualquier descarga
@@ -121,7 +129,11 @@ de permisos al renombrar ficheros.
 
 ---
 
-## Exp02 — TCGA-LUAD (modulo ML)
+## Exp02 — MAF somatico pan-cancer del TCGA (modulo ML)
+
+> **Importante.** El fichero se descarga bajo la denominacion del proyecto TCGA-LUAD,
+> pero su contenido real corresponde al conjunto pan-cancer MC3 del TCGA (10.295
+> muestras tumorales de 33 tipos de cancer). Ver seccion 5.3.1 de la memoria.
 
 ### Descarga MAF GRCh37 legacy (wget directo)
 
@@ -130,7 +142,7 @@ de permisos al renombrar ficheros.
 
 Nota: TCGAbiolinks descartado por conflicto de dependencias con Conda.
 
-### Liftover GRCh37 a GRCh38 con CrossMap v0.7.3
+### Liftover GRCh37 a GRCh38 con CrossMap v0.7.2
 
     # Descargar chain file
     wget https://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz \
@@ -143,7 +155,8 @@ Nota: TCGAbiolinks descartado por conflicto de dependencias con Conda.
       /mnt/k/TFM-bioinformatica/datos-raw/referencia/hg38.fa \
       /mnt/k/TFM-bioinformatica/datos-raw/TCGA-LUAD/TCGA-LUAD.mutect2.GRCh38.maf
 
-Resultado: 3.600.605 variantes (perdida 0.01% en liftover).
+Resultado: 3.600.605 variantes convertidas (perdida 0.01% en el liftover).
+El MAF final reconstruido contiene 3.598.760 variantes; ver docs/liftover_GRCh37_to_GRCh38.md.
 
 ---
 
@@ -157,8 +170,10 @@ Resultado: 3.600.605 variantes (perdida 0.01% en liftover).
 
     gunzip /mnt/k/TFM-bioinformatica/datos-raw/referencia/hg38.fa.gz
 
-    # Indexar para BWA-MEM2 (~60 GB, puede tardar 1-2h)
-    bwa-mem2 index /mnt/k/TFM-bioinformatica/datos-raw/referencia/hg38.fa
+    # Indexar para BWA (~5 GB, puede tardar 1-2h)
+    # NOTA: se descarto BWA-MEM2 por errores reproducibles de memoria insuficiente
+    # (OOM) en el hardware disponible; se emplea BWA 0.7.17 clasico.
+    bwa index /mnt/k/TFM-bioinformatica/datos-raw/referencia/hg38.fa
 
     # Indexar para samtools/GATK
     samtools faidx /mnt/k/TFM-bioinformatica/datos-raw/referencia/hg38.fa
@@ -174,13 +189,18 @@ Tamano: ~15 GB. Puede tardar varias horas segun el ancho de banda.
 
 ---
 
-## dbSNP b156 (para GATK BQSR)
+## dbSNP (para GATK BQSR)
 
-    wget https://ftp.ncbi.nih.gov/snp/latest_release/VCF/GCF_000001405.40.gz \
-      -O /mnt/k/TFM-bioinformatica/datos-raw/referencia/dbsnp_156.vcf.gz
+El pipeline emplea finalmente **dbSNP138** desde el bundle de recursos de GATK, por
+compatibilidad directa con las herramientas del Broad Institute y con las coordenadas
+GRCh38 empleadas en el resto del flujo.
+
+    # Descargar desde el bundle de GATK
+    wget https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dbsnp138.vcf \
+      -O datos-raw/referencia/dbsnp138.vcf
 
     # Indexar
-    tabix -p vcf /mnt/k/TFM-bioinformatica/datos-raw/referencia/dbsnp_156.vcf.gz
+    gatk IndexFeatureFile -I datos-raw/referencia/dbsnp138.vcf
 
 ---
 
@@ -188,6 +208,6 @@ Tamano: ~15 GB. Puede tardar varias horas segun el ancho de banda.
 
 - Los ficheros FASTQ, BAM y MAF NO se versionan en Git (.gitignore).
 - Los ficheros de referencia tampoco se versionan por tamano.
-- CADD v1.7 (80 GB) — usar API online en lugar de descarga local.
+- CADD v1.7 (80 GB) — no llego a instalarse; la anotacion final no incluye CADD ni SpliceAI.
 - Documentar fecha de descarga y verificacion en el lab notebook.
 - Siempre verificar integridad con gzip -t antes de borrar originales.

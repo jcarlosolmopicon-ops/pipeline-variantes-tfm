@@ -63,3 +63,4 @@ resultados/exp01/markdup/*.bai
 
 # Excepcion: pipeline_info de exp03 (documentacion de ejecucion)
 !resultados/exp03_run_completa/pipeline_info/
+.~lock.*#
