@@ -1,117 +1,112 @@
-# Lab Notebook — Pipeline Variantes Somaticas
-## Registro tecnico de sesiones de trabajo
-## Repo: ~/pipeline-variantes
+# Lab Notebook — Pipeline de variantes somáticas
 
-> **Entornos de ejecucion.** El proyecto se desarrollo en dos entornos sucesivos. Las
-> entradas NB-001 a NB-006 corresponden a la fase inicial sobre **Windows 11 con WSL2**
-> (maquina DESKTOP-QK2T4QJ), con los datos pesados en un disco externo K: montado via
-> drvfs. Durante la ejecucion completa del pipeline se migro a **Ubuntu nativo en
-> arranque dual** (maquina olmop-MS-7E26), por los motivos que se detallan en NB-007.
-> Todos los resultados descritos en la memoria (exp03 a exp06) se obtuvieron en el
-> segundo entorno.
+Registro técnico de las sesiones de trabajo del proyecto. El repositorio vive en
+`~/pipeline-variantes`. El proyecto se desarrolló en dos entornos sucesivos: la fase inicial
+sobre WSL2 (NB-001 a NB-006) y el resto sobre Ubuntu nativo tras la migración descrita en
+NB-007.
 
 ---
 
 ## Entrada NB-001 — Setup inicial del entorno de trabajo
 
 **Fecha:** 24 de abril de 2026
-**Maquina:** DESKTOP-QK2T4QJ (WSL2 Ubuntu)
+**Máquina:** DESKTOP-QK2T4QJ (WSL2 Ubuntu)
 **Estado:** Completado
 
 ### Contexto
 
-Instalacion y configuracion del stack completo de herramientas bioinformaticas
-en Windows 11 con WSL2 (Ubuntu). Docker Desktop ya estaba instalado y configurado
-con integracion WSL2.
+Instalación y configuración del stack de herramientas bioinformáticas en Windows 11 con
+WSL2 (Ubuntu). Docker Desktop ya estaba instalado con integración WSL2.
 
 ### Regla de trabajo en WSL2
 
-Todo el proyecto reside en el home de WSL2 (~/) y nunca en /mnt/c/.
-Los archivos en /mnt/c/ son lentos y pueden causar errores en herramientas
-bioinformaticas que asumen inodos POSIX.
+Todo el proyecto reside en el home de WSL2 (`~/`) y nunca en `/mnt/c/`. Los archivos en
+`/mnt/c/` son lentos y pueden causar errores en herramientas que asumen inodos POSIX.
 
 ### Pasos ejecutados
 
-    # Verificacion Docker
+    # Verificación de Docker
     docker run hello-world
 
-    # Instalacion Java 17
+    # Java 17
     sudo apt install -y openjdk-17-jdk curl wget git unzip
 
-    # Instalacion Nextflow
+    # Nextflow
     curl -s https://get.nextflow.io | bash
     mkdir -p ~/bin && mv nextflow ~/bin/
     nextflow -version
 
-    # Instalacion Miniconda (Linux x86_64 dentro de WSL2)
+    # Miniconda
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     bash Miniconda3-latest-Linux-x86_64.sh
 
-    # Configuracion de canales conda
+    # Canales de conda
     conda config --add channels defaults
     conda config --add channels bioconda
     conda config --add channels conda-forge
     conda config --set channel_priority strict
 
-    # Creacion del entorno tfm-variantes
+    # Entorno del proyecto
     conda env create -f entorno/environment.yml
     conda activate tfm-variantes
 
 ### Versiones instaladas
 
-| Herramienta | Version |
+| Herramienta | Versión |
 |-------------|---------|
 | Nextflow    | 25.10.4 |
 | Python      | 3.11    |
 | Java        | 17      |
 | Docker      | Desktop integrado con WSL2 |
 
-### Decisiones tecnicas tomadas
+### Decisiones técnicas tomadas
 
 - GRCh38 como genoma de referencia (GRCh37 obsoleto).
-- Nextflow DSL2 sobre Snakemake: integracion nativa Docker/Singularity
-  y disponibilidad de nf-core como referencia.
+- Nextflow DSL2 sobre Snakemake: integración nativa con Docker/Singularity y disponibilidad
+  de nf-core como referencia.
 - BWA-MEM2 sobre BWA-MEM: mismos resultados con velocidad 2x.
-- VEP v110 sobre ANNOVAR: sistema de plugins mas extensible (CADD, SpliceAI).
-- RF + XGBoost sobre deep learning: interpretabilidad clinica y robustez
-  ante datos desbalanceados.
-- Conda (bioconda) sobre pip+venv: gestiona dependencias no Python (C libs, Java).
+  **Revertido en NB-007** — BWA-MEM2 se descartó por consumo de memoria poco predecible.
+- VEP v110 sobre ANNOVAR: sistema de plugins más extensible (CADD, SpliceAI).
+  **Parcialmente revertido** — CADD y SpliceAI requieren ficheros de plugin externos que no
+  llegaron a instalarse; la anotación final no los incluye.
+- RF + XGBoost sobre deep learning: interpretabilidad y robustez ante datos desbalanceados.
+- Conda (bioconda) sobre pip+venv: gestiona dependencias no Python (librerías C, Java).
 
 ### Problemas encontrados y soluciones
 
-- Docker no disponible en WSL: Docker Desktop no estaba en ejecucion.
-  Solucion: abrir Docker Desktop primero.
-- Permission denied con Docker:
-  sudo usermod -aG docker $USER && newgrp docker
+- Docker no disponible en WSL: Docker Desktop no estaba en ejecución.
+  Solución: abrir Docker Desktop primero.
+- `Permission denied` con Docker:
+  `sudo usermod -aG docker $USER && newgrp docker`
 
 ---
 
-## Entrada NB-002 — Inicializacion Git y configuracion Nextflow
+## Entrada NB-002 — Inicialización de Git y configuración de Nextflow
 
 **Fecha:** 24 de abril de 2026
-**Maquina:** DESKTOP-QK2T4QJ (WSL2 Ubuntu)
+**Máquina:** DESKTOP-QK2T4QJ (WSL2 Ubuntu)
 **Estado:** Completado
 
 ### Contexto
 
-Inicializacion del repositorio Git en ~/pipeline-variantes, construccion
-de la estructura de directorios del proyecto y configuracion de Nextflow
-con perfiles local (Docker) y conda_local. Verificacion con smoke test.
+Inicialización del repositorio en `~/pipeline-variantes`, construcción de la estructura de
+directorios y configuración de Nextflow con los perfiles `local` (Docker) y `conda_local`.
+Verificación con smoke test.
 
 ### Comandos ejecutados
 
-    # Inicializacion del repo
+    # Inicialización del repositorio
     mkdir -p ~/pipeline-variantes && cd ~/pipeline-variantes
     git init
     git config user.name "Juan Carlos Olmo Picon"
-    git config user.email "tu@email.com"
+    git config user.email "jcarlosolmopicon@gmail.com"
 
     # Estructura de directorios
     mkdir -p config datos-intermedios/nextflow-work datos-raw/{HCC1395,TCGA-LUAD,referencia,tests}
     mkdir -p docs entorno resultados/{exp01,exp02} scripts
     find . -type d -empty -exec touch {}/.gitkeep \;
 
-    # Smoke test Nextflow
+    # Smoke test de Nextflow
     nextflow run hello -profile local
 
 ### Commits realizados
@@ -123,7 +118,7 @@ con perfiles local (Docker) y conda_local. Verificacion con smoke test.
     ebacf1a chore: init repo directory structure with .gitkeep placeholders
     956ab11 docs: add README.md with project description and repo structure
 
-### nextflow.config (perfil local y conda_local)
+### nextflow.config (versión inicial)
 
     profiles {
         local {
@@ -142,88 +137,97 @@ con perfiles local (Docker) y conda_local. Verificacion con smoke test.
 
 ### Problemas encontrados y soluciones
 
-- Error "Unknown configuration profile: local": nextflow.config no existia
-  en la raiz del repo. Solucion: crear nextflow.config en ~/pipeline-variantes/
-- Fichero "reword" creado por accidente durante git rebase -i.
-  Solucion: rm reword antes del commit.
-- Mensajes de commit sin prefijo en los primeros 3 commits.
-  Solucion: git rebase -i HEAD~3 usando reword para corregirlos.
+- Error `Unknown configuration profile: local`: `nextflow.config` no existía en la raíz del
+  repositorio. Solución: crearlo en `~/pipeline-variantes/`.
+- Fichero `reword` creado por accidente durante un `git rebase -i`.
+  Solución: `rm reword` antes del commit.
+- Mensajes de commit sin prefijo en los tres primeros commits.
+  Solución: `git rebase -i HEAD~3` usando `reword`.
 
 ---
 
-## Entrada NB-003 — Seleccion de dataset y descarga de datos
+## Entrada NB-003 — Selección de dataset y descarga de datos
 
 **Fecha:** 24 de abril de 2026
-**Maquina:** DESKTOP-QK2T4QJ (WSL2 Ubuntu)
+**Máquina:** DESKTOP-QK2T4QJ (WSL2 Ubuntu)
 **Estado:** Completado
 
 ### Contexto
 
-Seleccion del dataset de trabajo y descarga de los ficheros SRA y MAF.
-Se cambio el enfoque de variantes germinales a variantes somaticas (tumor vs
-normal) por mayor relevancia clinica y disponibilidad de truth set de referencia.
+Selección del dataset de trabajo y descarga de los ficheros SRA y MAF. Se cambió el enfoque
+de variantes germinales a variantes somáticas (tumor frente a normal) por mayor relevancia
+clínica y por la disponibilidad de un truth set de referencia.
 
-### Decision de dataset
+### Decisión de dataset
 
-- Exp01 (validacion pipeline): SEQC2/HCC1395 — par tumor/normal con truth set
-  de alta confianza (39.536 SNVs + 2.020 INDELs HighConf).
-- Exp02 (modulo ML): TCGA-LUAD MAF — 585 casos de adenocarcinoma de pulmon.
-- Descartado: TCGA para datos crudos BAM/FASTQ por requerir acceso dbGaP.
+- **Validación del pipeline:** SEQC2/HCC1395, par tumor-normal con truth set público.
+- **Módulo ML:** MAF somático del TCGA descargado del GDC, en coordenadas GRCh37.
+- Descartado: TCGA para datos crudos BAM/FASTQ, por requerir acceso dbGaP.
+
+  **Corrección posterior (agosto de 2026).** El MAF se descargó bajo la denominación del
+  proyecto TCGA-LUAD y así se registró en su momento, pero su contenido real corresponde al
+  conjunto pan-cáncer MC3 del TCGA: 3.598.760 variantes de 10.295 muestras tumorales de 33
+  tipos de cáncer, de las que el proyecto LUAD aporta el 6,1 %. La discrepancia se detectó
+  durante la verificación final de los datos y se documenta en la sección 5.3.1 de la memoria.
+
+  El recuento del truth set de SEQC2 registrado aquí (39.536 SNV + 2.020 INDEL) procede de
+  la publicación de Fang et al. (2021). Los ficheros efectivamente descargados contienen
+  39.560 SNV y 1.922 INDEL, de los que 37.398 y 1.754 son HighConf y el resto MedConf.
 
 ### Comandos de descarga SRA
 
-    # Actualizacion sra-tools (v2.9.6 fallaba con error SSL)
+    # Actualización de sra-tools (v2.9.6 fallaba con error SSL)
     conda install sra-tools=3.1.1
 
-    # Descarga tumor HCC1395 (SRR7890824, ~64 GB)
+    # Tumor HCC1395 (SRR7890824, ~64 GB)
     prefetch SRR7890824 \
       --output-directory /mnt/k/TFM-bioinformatica/datos-raw/HCC1395 \
       --max-size 100GB
 
-    # Descarga normal HCC1395BL (SRR7890827, ~70 GB)
+    # Normal HCC1395BL (SRR7890827, ~70 GB)
     prefetch SRR7890827 \
       --output-directory /mnt/k/TFM-bioinformatica/datos-raw/HCC1395 \
       --max-size 100GB
 
-### Descarga y liftover TCGA-LUAD MAF
+### Descarga y liftover del MAF
 
-    # Descarga MAF GRCh37 legacy
+    # MAF GRCh37 legacy
     wget "https://api.gdc.cancer.gov/data/1c8cfe5f-e52d-41ba-94da-f15ea1337efc" \
-      -O /mnt/k/TFM-bioinformatica/datos-raw/TCGA-LUAD/TCGA-LUAD.mutect2.GRCh37.legacy.maf.gz
+      -O /mnt/k/TFM-bioinformatica/datos-raw/TCGA-LUAD/TCGA-LUAD.mutect2.somatic.maf.gz
 
-    # Descarga chain file para liftover
+    # Chain file
     wget https://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz \
       -O /mnt/k/TFM-bioinformatica/datos-raw/referencia/hg19ToHg38.over.chain.gz
 
-    # Liftover GRCh37 -> GRCh38 con CrossMap v0.7.3
-    CrossMap.py maf hg19ToHg38.over.chain.gz \
-      TCGA-LUAD.mutect2.GRCh37.legacy.maf.gz \
-      /mnt/k/.../referencia/hg38.fa \
+    # Liftover GRCh37 -> GRCh38
+    CrossMap maf hg19ToHg38.over.chain.gz \
+      TCGA-LUAD.mutect2.somatic.maf.gz \
+      GRCh38.fa GRCh38 \
       TCGA-LUAD.mutect2.GRCh38.maf
 
-### Resultado liftover
+### Resultado del liftover
 
-| Metrica | Valor |
+| Métrica | Valor |
 |---------|-------|
-| Variantes entrada (GRCh37) | 3.600.963 |
-| Variantes salida (GRCh38)  | 3.600.605 |
-| Perdidas en liftover       | 358 (0.01%) |
+| Registros en el MAF original (GRCh37) | 3.600.963 |
+| No convertidos (fichero `.unmap`) | 2.203 (0,061 %) |
+| Convertidos a GRCh38 | 3.598.760 (99,94 %) |
+
+La versión de CrossMap empleada en el liftover definitivo fue la **0.7.2**, registrada en la
+línea de comentario que la propia herramienta antepone al fichero de salida. Ver
+`docs/liftover_GRCh37_to_GRCh38.md`.
 
 ### Problemas encontrados y soluciones
 
-- SRA-tools v2.9.6 error SSL (mbedtls_ssl_handshake -9984).
-  Solucion: conda install sra-tools=3.1.1
-- prefetch rechazaba ficheros >20 GB.
-  Solucion: anadir --max-size 100GB
-- MAF GDC era GRCh37 legacy. GDC GRCh38 ya no distribuye MAF agregado.
-  Solucion: liftover con CrossMap v0.7.3
-
-  NOTA (agosto 2026): la version finalmente empleada en el liftover definitivo fue
-  CrossMap v0.7.2. Ver docs/liftover_GRCh37_to_GRCh38.md.
-- TCGAbiolinks: conflicto de dependencias con Conda.
-  Solucion: descartado en favor de CrossMap.
-- Lock file SRR7890827.sra.lock al cerrar terminal.
-  Solucion: rm *.sra.lock y relanzar prefetch (reanuda automaticamente).
+- sra-tools v2.9.6 daba error SSL (`mbedtls_ssl_handshake -9984`).
+  Solución: `conda install sra-tools=3.1.1`.
+- prefetch rechazaba ficheros de más de 20 GB.
+  Solución: añadir `--max-size 100GB`.
+- El MAF del GDC era GRCh37 legacy; el GDC ya no distribuye el MAF agregado en GRCh38.
+  Solución: liftover con CrossMap.
+- TCGAbiolinks: conflicto de dependencias con Conda. Solución: descartado.
+- Fichero `SRR7890827.sra.lock` al cerrar la terminal.
+  Solución: `rm *.sra.lock` y relanzar prefetch, que reanuda automáticamente.
 
 ### Commits generados
 
@@ -234,64 +238,63 @@ normal) por mayor relevancia clinica y disponibilidad de truth set de referencia
 
 ---
 
-## Entrada NB-004 — Estrategia de almacenamiento en disco externo K:
+## Entrada NB-004 — Estrategia de almacenamiento en disco externo
 
 **Fecha:** 24 de abril de 2026
-**Maquina:** DESKTOP-QK2T4QJ (WSL2 Ubuntu)
-**Estado:** Completado
+**Máquina:** DESKTOP-QK2T4QJ (WSL2 Ubuntu)
+**Estado:** Completado — superado por NB-007
 
 ### Contexto
 
-El disco C: (WSL2) solo disponia de ~67 GB libres, insuficiente para los
-FASTQs descomprimidos (~422 GB). Se adopto una estrategia de almacenamiento
-en disco externo K: (1.9 TB) para todos los datos pesados del proyecto.
+El disco C: (WSL2) solo disponía de ~67 GB libres, insuficientes para los FASTQ
+descomprimidos (~422 GB). Se adoptó una estrategia de almacenamiento en el disco externo K:
+(1,9 TB) para todos los datos pesados del proyecto.
 
 ### Inventario de discos
 
 | Disco | Montaje WSL2 | Libre | Uso |
 |-------|-------------|-------|-----|
-| C: (interno) | ~ (home WSL2) | ~67 GB | Codigo, conda, Nextflow workDir |
-| D: (interno) | /mnt/d | ~319 GB | Reserva |
-| K: (externo USB) | /mnt/k | ~890 GB | Datos pesados del TFM |
+| C: (interno) | `~` (home WSL2) | ~67 GB | Código, conda, workDir de Nextflow |
+| D: (interno) | `/mnt/d` | ~319 GB | Reserva |
+| K: (externo USB) | `/mnt/k` | ~890 GB | Datos pesados del TFM |
 
-### Montar disco K: en WSL2
+### Montaje del disco K:
 
     sudo mkdir -p /mnt/k
     sudo mount -t drvfs K: /mnt/k
 
-Este comando debe ejecutarse en cada inicio de WSL2 ya que el montaje
-no es persistente entre sesiones.
+El montaje no es persistente: hay que repetirlo en cada inicio de WSL2.
 
 ### Estructura de datos en K:
 
     /mnt/k/TFM-bioinformatica/
     ├── datos-raw/
-    │   ├── HCC1395/          # SRA y FASTQs tumor/normal
+    │   ├── HCC1395/          # SRA y FASTQ tumor/normal
     │   ├── TCGA-LUAD/        # MAF GRCh37 y GRCh38
-    │   └── referencia/       # GRCh38, indices, VEP cache, chain files
-    ├── datos-intermedios/    # Temporales fasterq-dump (se limpian solos)
-    └── resultados/           # Outputs del pipeline
+    │   └── referencia/       # GRCh38, índices, caché de VEP, chain files
+    ├── datos-intermedios/    # Temporales de fasterq-dump
+    └── resultados/           # Salidas del pipeline
 
 ### Problemas documentados
 
-- FASTQs parciales (60 GB x2) generados por fasterq-dump en C:.
-  Solucion: eliminados con rm; relanzar con --outdir apuntando a K:.
-- Temporales fasterq-dump de 315 GB consumieron espacio de K:.
-  Solucion: rm -rf datos-intermedios/* y relanzar.
+- FASTQ parciales (60 GB x2) generados por fasterq-dump en C:.
+  Solución: eliminados; relanzar con `--outdir` apuntando a K:.
+- Temporales de fasterq-dump de 315 GB consumieron espacio de K:.
+  Solución: `rm -rf datos-intermedios/*` y relanzar.
 
 ---
 
-## Entrada NB-005 — Conversion FASTQ tumor HCC1395
+## Entrada NB-005 — Conversión a FASTQ del tumor HCC1395
 
 **Fecha:** 24-25 de abril de 2026
-**Maquina:** DESKTOP-QK2T4QJ (WSL2 Ubuntu)
+**Máquina:** DESKTOP-QK2T4QJ (WSL2 Ubuntu)
 **Estado:** Completado
 
 ### Contexto
 
-Conversion de SRR7890824.sra (tumor HCC1395, 65 GB) a formato FASTQ mediante
-fasterq-dump. El disco externo K: fue identificado como cuello de botella
-principal de I/O al tener temporales y salida en el mismo disco.
+Conversión de `SRR7890824.sra` (tumor HCC1395, 65 GB) a FASTQ mediante fasterq-dump. El
+disco externo K: resultó ser el cuello de botella de E/S al tener temporales y salida en el
+mismo disco.
 
 ### Comando ejecutado
 
@@ -302,177 +305,248 @@ principal de I/O al tener temporales y salida en el mismo disco.
       --temp /mnt/k/TFM-bioinformatica/datos-intermedios/ \
       --outdir /mnt/k/TFM-bioinformatica/datos-raw/HCC1395
 
-### Verificacion e integridad
+### Verificación
 
-    # Verificar ficheros generados
-    ls -lh /mnt/k/TFM-bioinformatica/datos-raw/HCC1395/SRR7890824*.fastq*
-
-    # Test de integridad
     gzip -t /mnt/k/TFM-bioinformatica/datos-raw/HCC1395/SRR7890824_1.fastq.gz && echo "R1 OK"
     gzip -t /mnt/k/TFM-bioinformatica/datos-raw/HCC1395/SRR7890824_2.fastq.gz && echo "R2 OK"
 
-    # Borrar SRA original tras verificacion
+    # Borrar el SRA original tras verificar
     rm -rf /mnt/k/TFM-bioinformatica/datos-raw/HCC1395/SRR7890824/
 
-### Metricas de ejecucion
+### Métricas de ejecución
 
-| Metrica              | Valor                            |
+| Métrica              | Valor                            |
 |----------------------|----------------------------------|
 | Inicio               | 24/04/2026 ~18:00                |
 | Fin                  | 25/04/2026 ~10:44                |
-| Duracion total       | ~16h 44min                       |
-| SRA entrada          | 65 GB                            |
-| FASTQs sin comprimir | ~232 GB (R1: 116 GB, R2: 116 GB) |
-| FASTQs comprimidos   | ~95 GB (R1: 45 GB, R2: 50 GB)   |
-| Temporales maximos   | ~401 GB                          |
-| Ratio compresion     | ~2.4x                            |
+| Duración total       | ~16 h 44 min                     |
+| SRA de entrada       | 65 GB                            |
+| FASTQ sin comprimir  | ~232 GB (R1: 116 GB, R2: 116 GB) |
+| FASTQ comprimidos    | ~95 GB (R1: 45 GB, R2: 50 GB)    |
+| Temporales máximos   | ~401 GB                          |
+| Ratio de compresión  | ~2,4x                            |
 
 ### Problemas encontrados y soluciones
 
-1. Cuello de botella I/O: temporales y salida en el mismo disco K:.
-   Solucion: mover temporales a C: en futuras conversiones (ver NB-006).
-
-2. gzip Operation not permitted en disco K: montado via drvfs.
-   Solucion: usar gzip -c con redireccion stdout al fichero .gz.
-   En la practica el primer gzip funciono y borro los originales.
-
-3. Temporales fasterq-dump: techo de ~401 GB durante fase merge.
-   Se limpian automaticamente al finalizar.
+- Cuello de botella de E/S: temporales y salida en el mismo disco K:.
+  Solución: mover los temporales a C: en las conversiones siguientes (ver NB-006).
+- `gzip: Operation not permitted` en el disco K: montado vía drvfs.
+  Solución: usar `gzip -c` con redirección al fichero `.gz`.
+- Los temporales de fasterq-dump alcanzaron un techo de ~401 GB durante la fase de merge.
+  Se limpian automáticamente al finalizar.
 
 ### Artefactos generados
 
-- SRR7890824_1.fastq.gz — 45 GB — Verificado con gzip -t
-- SRR7890824_2.fastq.gz — 50 GB — Verificado con gzip -t
-- SRR7890824.sra borrado tras verificacion
+- `SRR7890824_1.fastq.gz` — 45 GB — verificado con `gzip -t`
+- `SRR7890824_2.fastq.gz` — 50 GB — verificado con `gzip -t`
+- `SRR7890824.sra` borrado tras la verificación
 
 ---
 
-## Entrada NB-006 — Optimizacion almacenamiento: compactacion VHDX WSL2
+## Entrada NB-006 — Compactación del disco virtual de WSL2
 
 **Fecha:** 25 de abril de 2026
-**Maquina:** DESKTOP-QK2T4QJ (Windows 11 + WSL2)
-**Estado:** Completado
+**Máquina:** DESKTOP-QK2T4QJ (Windows 11 + WSL2)
+**Estado:** Completado — superado por NB-007
 
 ### Contexto
 
-El disco virtual de WSL2 (ext4.vhdx) habia crecido hasta 583 GB en C:
-por los ficheros temporales de fasterq-dump, dejando solo 67 GB libres.
-Se compacto el VHDX y se adopto nueva arquitectura de discos separando
-temporales (C:) de datos finales (K:).
+El disco virtual de WSL2 (`ext4.vhdx`) había crecido hasta 583 GB en C: por los ficheros
+temporales de fasterq-dump, dejando solo 67 GB libres. Se compactó el VHDX y se adoptó una
+nueva arquitectura de discos separando temporales (C:) de datos finales (K:).
 
-### Diagnostico previo
+### Diagnóstico previo
 
-    # Uso real del filesystem WSL2
-    df -h /
-    # Resultado: 42 GB usados de 1007 GB
+    df -h /          # 42 GB usados de 1007 GB
+    du -sh ~/*       # mayor consumidor: 15 GB de miniconda3
 
-    # Mayor consumidor
-    du -sh ~/*
-    # Resultado: 15 GB miniconda3
+### Limpieza previa a la compactación
 
-### Limpieza previa a la compactacion
-
-    conda clean --all -y          # libero 3.38 GB
-    docker system prune -f        # libero 1.115 GB
+    conda clean --all -y                     # liberó 3,38 GB
+    docker system prune -f                   # liberó 1,115 GB
     rm ~/Miniconda3-latest-Linux-x86_64.sh   # 155 MB
     rm ~/ncbi_error_report.txt
 
-    # Rellenar espacio libre con ceros para maximizar compactacion
+    # Rellenar el espacio libre con ceros para maximizar la compactación
     sudo dd if=/dev/zero of=/zeros.tmp bs=1M status=progress 2>/dev/null
     sudo rm /zeros.tmp
 
-### Compactacion VHDX desde PowerShell Admin
-
-    # Ruta del VHDX encontrada en:
-    # C:\Users\Juan Carlos\AppData\Local\wsl\{4559b619-56e6-48c1-b26b-a75229854874}\ext4.vhdx
+### Compactación desde PowerShell con permisos de administrador
 
     wsl --shutdown
 
     diskpart
-    select vdisk file="C:\Users\Juan Carlos\AppData\Local\wsl\{4559b619-56e6-48c1-b26b-a75229854874}\ext4.vhdx"
+    select vdisk file="C:\Users\...\AppData\Local\wsl\{...}\ext4.vhdx"
     attach vdisk readonly
     compact vdisk
     detach vdisk
     exit
 
-    # Verificacion resultado
-    Get-PSDrive C | Select-Object @{N='Libre(GB)';E={[math]::Round($_.Free/1GB,0)}}
+### Métricas
 
-### Metricas
-
-| Metrica            | Antes  | Despues |
+| Métrica            | Antes  | Después |
 |--------------------|--------|---------|
-| ext4.vhdx tamano   | 583 GB | ~30 GB  |
+| Tamaño de ext4.vhdx| 583 GB | ~30 GB  |
 | C: libre           | 67 GB  | 619 GB  |
 | Espacio recuperado | —      | +552 GB |
 
 ### Problemas encontrados y soluciones
 
-- Optimize-VHD no disponible: requiere Hyper-V (no disponible en Windows Home).
-  Solucion: usar diskpart con compact vdisk.
-- diskpart "archivo en uso": WSL2 no estaba completamente apagado.
-  Solucion: reiniciar Windows completamente antes de ejecutar diskpart.
+- `Optimize-VHD` no disponible: requiere Hyper-V, ausente en Windows Home.
+  Solución: usar `diskpart` con `compact vdisk`.
+- `diskpart` daba "archivo en uso": WSL2 no estaba completamente apagado.
+  Solución: reiniciar Windows antes de ejecutar diskpart.
 
 ### Nueva arquitectura de discos adoptada
 
 | Disco | Uso | Libre |
 |-------|-----|-------|
-| C: interno | Temporales fasterq-dump (~/tmp-fasterq/), conda, codigo | 619 GB |
-| K: externo | FASTQs .gz, referencias, resultados permanentes | ~544 GB |
+| C: interno | Temporales de fasterq-dump (`~/tmp-fasterq/`), conda, código | 619 GB |
+| K: externo | FASTQ comprimidos, referencias, resultados permanentes | ~544 GB |
 
-La separacion de I/O entre discos reduce el tiempo estimado de conversion
-del normal en ~50% respecto al tumor.
-
-### Proximo paso
-
-Conversion SRR7890827 (muestra normal, 70 GB) con temporales en C::
-
-    mkdir -p ~/tmp-fasterq
-
-    fasterq-dump /mnt/k/TFM-bioinformatica/datos-raw/HCC1395/SRR7890827/SRR7890827.sra \
-      --split-files \
-      --threads 4 \
-      --mem 14GB \
-      --temp ~/tmp-fasterq/ \
-      --outdir /mnt/k/TFM-bioinformatica/datos-raw/HCC1395
+Separar la E/S entre discos redujo el tiempo de conversión de la muestra normal en
+aproximadamente un 50 % respecto al tumor.
 
 ---
 
-## NB-XX — Validacion con hap.py contra truth set SEQC2 (HCC1395)
+## Entrada NB-007 — Migración de WSL2 a Ubuntu nativo (arranque dual)
+
+**Fecha:** 20 de mayo de 2026
+**Máquina de origen:** DESKTOP-QK2T4QJ (Windows 11 + WSL2 Ubuntu)
+**Máquina de destino:** olmop-MS-7E26 (Ubuntu nativo, arranque dual junto a Windows)
+**Estado:** Completado
+
+### Contexto
+
+La migración se decidió durante la ejecución completa del pipeline sobre el par
+HCC1395/HCC1395BL, no antes. La corrida se interrumpió de forma repetida por agotamiento de
+memoria y por inestabilidad del entorno, lo que impedía completar las etapas más exigentes
+(alineamiento y MuTect2) en una sola ejecución.
+
+### Problemas acumulados en WSL2
+
+1. **Gestión de memoria.** WSL2 opera sobre una máquina virtual ligera con memoria asignada
+   dinámicamente. Bajo carga sostenida, BWA-MEM2 y GATK alcanzaban el límite disponible y
+   morían por OOM, sin que el ajuste de `.wslconfig` lo resolviera de forma fiable.
+
+2. **Rendimiento de E/S sobre drvfs.** Los datos pesados residían en el disco externo K:,
+   montado mediante drvfs. El acceso a ficheros grandes a través de esa capa de traducción
+   es sustancialmente más lento que sobre un sistema de ficheros nativo, y varias
+   herramientas (sra-tools entre ellas) fallaban al intentar escribir en esa ruta.
+
+3. **Crecimiento del disco virtual.** `ext4.vhdx` crece de forma dinámica pero no se compacta
+   solo, lo que obligaba a intervenciones manuales periódicas (ver NB-006).
+
+### Decisión
+
+Instalar Ubuntu en arranque dual junto a Windows, en lugar de seguir ajustando la
+configuración de WSL2.
+
+### Pasos ejecutados
+
+    # 1. Instalación de Ubuntu en partición propia (arranque dual)
+    # 2. Reinstalación del stack: Java 17, Nextflow, Miniconda, Docker
+    # 3. Recreación del entorno Conda
+    conda env create -f entorno/environment.yml
+    conda activate tfm-variantes
+
+    # 4. Clonado del repositorio
+    git clone https://github.com/jcarlosolmopicon-ops/pipeline-variantes-tfm.git
+
+    # 5. Traslado de los datos pesados al almacenamiento nativo (ext4 sobre NVMe)
+    #    y verificación de integridad tras la copia
+    gzip -t datos-raw/HCC1395/*.fastq.gz
+
+    # 6. Relanzamiento del pipeline
+    nextflow run main.nf -profile local --step all -resume
+
+### Resultado
+
+La ejecución completa terminó sin interrupciones. Los tiempos mejoraron de forma apreciable
+al eliminar la capa drvfs, aunque MuTect2 siguió siendo el cuello de botella del flujo (más
+de 10 horas sobre el par completo).
+
+### Consecuencias para el resto del proyecto
+
+- La estrategia de almacenamiento de NB-004 y NB-006 (montaje de K:, temporales en C:,
+  compactación del VHDX) deja de aplicar. Todos los datos residen a partir de aquí en el
+  sistema de ficheros nativo.
+- Se descartó definitivamente **BWA-MEM2** en favor de BWA 0.7.17 clásico. Aunque el cambio
+  de entorno alivió la presión de memoria, BWA-MEM2 seguía mostrando un perfil de consumo
+  poco predecible para el volumen de datos de este trabajo.
+- Todos los resultados reportados en la memoria (exp03 a exp06) se obtuvieron en este entorno.
+
+### Estrategia de almacenamiento vigente
+
+Todo el proyecto reside en el sistema de ficheros nativo (ext4 sobre NVMe), sin capas de
+traducción intermedias.
+
+| Contenido | Ubicación |
+|-----------|-----------|
+| Código y entorno | `~/pipeline-variantes/`, `~/miniconda3/` |
+| Datos de partida (FASTQ, referencias, MAF) | `datos-raw/` |
+| Intermedios de Nextflow (workDir) | `datos-intermedios/` |
+| Resultados | `resultados/expNN/` |
+
+En Git se versionan el código, la configuración, la documentación y los ficheros de
+resultados ligeros (métricas, informes, modelos serializados). Quedan excluidos por
+`.gitignore` los ficheros pesados: FASTQ, BAM alineados y recalibrados, referencias e
+índices, y el MAF de entrenamiento.
+
+### Configuración final
+
+| Elemento | Valor |
+|----------|-------|
+| Sistema | Ubuntu (arranque dual junto a Windows 11) |
+| Hostname | olmop-MS-7E26 |
+| CPUs asignadas al pipeline | 12 |
+| Memoria asignada al pipeline | 28 GB |
+| Almacenamiento | NVMe, ext4 nativo |
+| Perfil de ejecución | `local` (Docker) |
+
+---
+
+## Entrada NB-008 — Validación con hap.py frente al truth set de SEQC2
+
+**Fecha:** 11 de junio de 2026
+**Máquina:** olmop-MS-7E26 (Ubuntu nativo)
+**Estado:** Completado
 
 ### Objetivo
-Evaluar precision/recall del pipeline (MuTect2 + filtros) frente al
-truth set HighConf/MedConf de SEQC2 (39.536 SNVs + 2.020 INDELs).
+
+Evaluar precisión y recall del pipeline (MuTect2 + FilterMutectCalls) frente al truth set de
+SEQC2 para el par HCC1395/HCC1395BL.
 
 ### Entorno
-- hap.py no disponible via conda/pkrusche (imagen Docker obsoleta,
-  manifest v1 no soportado por containerd >= 2.1)
-- Usada imagen alternativa: jmcdani20/hap.py:v0.3.12
 
-### Preparacion del truth set
-El truth set SEQC2 (highconf_sSNV.vcf.gz + highconf_sINDEL.vcf.gz)
-no es directamente compatible con hap.py por dos motivos:
+hap.py no está disponible vía conda y la imagen Docker de pkrusche está obsoleta (manifest
+v1, no soportado por containerd >= 2.1). Se usó la imagen alternativa
+`jmcdani20/hap.py:v0.3.12`.
 
-1. **Sin columna FORMAT/sample**: hap.py requiere genotipos.
-   Solucion: anadir sample dummy "TRUTH" con GT.
-2. **FILTER invalido**: el campo FILTER contiene valores compuestos
-   ("PASS;HighConf", "PASS;MedConf"), no validos en VCF estandar.
-   hap.py interpreta estos registros como "no PASS" y los descarta
-   (TRUTH.TOTAL=0 en primer intento).
+### Preparación del truth set
+
+El truth set de SEQC2 (`highconf_sSNV.vcf.gz` + `highconf_sINDEL.vcf.gz`) no es directamente
+compatible con hap.py por dos motivos:
+
+1. **Sin columna FORMAT/sample.** hap.py requiere genotipos.
+   Solución: añadir una muestra ficticia `TRUTH` con campo GT.
+2. **FILTER no estándar.** El campo contiene valores compuestos (`PASS;HighConf`,
+   `PASS;MedConf`) que hap.py interpreta como "no PASS" y descarta, dando `TRUTH.TOTAL=0`
+   en el primer intento.
 
 Pasos aplicados:
-    # 1. Concatenar SNV + INDEL truth sets
+
+    # 1. Concatenar los truth sets de SNV e INDEL
     bcftools concat -a highconf_sSNV.vcf.gz highconf_sINDEL.vcf.gz \
       -O z -o truth.vcf.gz
 
-    # 2. Normalizar FILTER a PASS (todas las variantes son
-    #    HighConf o MedConf, ambas validas)
+    # 2. Normalizar FILTER a PASS (HighConf y MedConf son ambas válidas)
     zcat truth.vcf.gz | awk 'BEGIN{OFS="\t"}
       /^#/{print; next}
       {$7="PASS"; print}' | bgzip > truth.fixed.vcf.gz
 
-    # 3. Reconstruir cabecera: contigs completos (tomados del VCF
-    #    de mutect2, que ya tiene ##contig de GRCh38) + ##FORMAT GT
+    # 3. Reconstruir la cabecera: contigs de GRCh38 (tomados del VCF de MuTect2)
+    #    más la definición de FORMAT/GT
     zcat somatic.filtered.vcf.gz | grep "^##contig" > contigs.txt
     {
       grep "^##fileformat" truth_header_noctig.txt
@@ -481,8 +555,8 @@ Pasos aplicados:
       echo '##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">'
     } > new_header.txt
 
-    # 4. Anadir sample TRUTH con GT 0/1 (heterocigoto, esperado
-    #    para variantes somaticas; GT 1/1 dio TP=0)
+    # 4. Añadir la muestra TRUTH con GT 0/1 (heterocigoto, coherente con la naturaleza
+    #    somática de las variantes; con GT 1/1 el resultado fue TP=0)
     {
       cat new_header.txt
       zcat truth.fixed.vcf.gz | awk 'BEGIN{OFS="\t"}
@@ -493,6 +567,7 @@ Pasos aplicados:
     tabix -p vcf truth.gt.vcf.gz
 
 ### Comando hap.py
+
     docker run -it --rm \
       -v ~/pipeline-variantes:/data \
       jmcdani20/hap.py:v0.3.12 /opt/hap.py/bin/hap.py \
@@ -503,121 +578,24 @@ Pasos aplicados:
       -o /data/resultados/exp03/happy/seqc2_eval \
       --pass-only
 
-### Resultados (somatic.filtered.vcf.gz vs SEQC2 truth set)
-| Tipo  | TRUTH.TOTAL | TP    | FN   | Recall | Precision | F1    |
-|-------|-------------|-------|------|--------|-----------|-------|
-| SNP   | 39447       | 35453 | 3994 | 0.8988 | 0.9781    | 0.9367|
-| INDEL | 1625        | 1412  | 213  | 0.8689 | 0.6054    | 0.7136|
+### Resultados
 
-### Interpretacion
-- SNVs: alta precision (97.8%) y buen recall (89.9%) -> resultado
-  solido, comparable a benchmarks publicados de MuTect2 en HCC1395.
-- INDELs: recall aceptable (86.9%) pero precision baja (60.5%),
-  esperado en MuTect2 sin filtros especificos de indels adicionales
-  (ej. realineacion local agresiva, panel of normals).
-- Frac_NA alta (54-79%) refleja variantes del query fuera de las
-  regiones highconf_regions.bed (zona no evaluable, no FP reales).
+| Tipo  | TRUTH.TOTAL | TP    | FN   | Recall | Precision | F1     |
+|-------|-------------|-------|------|--------|-----------|--------|
+| SNP   | 39.447      | 35.453| 3.994| 0,8988 | 0,9781    | 0,9367 |
+| INDEL | 1.625       | 1.412 | 213  | 0,8689 | 0,6054    | 0,7136 |
+
+Nota operativa: `Frac_NA` es alta (54 % en SNV, 79 % en INDEL) porque recoge las variantes
+del VCF de consulta situadas fuera de `highconf_regions.bed`, es decir, zona no evaluable.
+No son falsos positivos. La interpretación de estas métricas se desarrolla en la sección 5.2
+de la memoria.
 
 ### Salidas generadas
-resultados/exp03/happy/
-  seqc2_eval.summary.csv
-  seqc2_eval.extended.csv
-  seqc2_eval.vcf.gz (+ .tbi)
-  seqc2_eval.roc.*.csv.gz
-  seqc2_eval.runinfo.json
-  truth.gt.vcf.gz (+ .tbi)  # truth set corregido, reproducible
 
-### Proximo paso
-Redactar seccion 5 (Resultados) y 6 (Conclusiones) del TFM con
-estas metricas. Decidir alcance del modulo ML (RF/XGBoost, Exp02)
-segun tiempo disponible hasta deposito (20 junio).
-
----
-
-## Entrada NB-007 — Migracion de WSL2 a Ubuntu nativo (arranque dual)
-
-**Fecha:** 20 de mayo de 2026
-**Maquina origen:** DESKTOP-QK2T4QJ (Windows 11 + WSL2 Ubuntu)
-**Maquina destino:** olmop-MS-7E26 (Ubuntu nativo, arranque dual junto a Windows)
-**Estado:** Completado
-
-### Contexto
-
-La migracion se decidio **durante la ejecucion completa del pipeline sobre el par
-HCC1395/HCC1395BL**, no antes. La corrida se interrumpio de forma repetida por
-agotamiento de memoria y por inestabilidad general del entorno, lo que impedia
-completar las etapas mas exigentes (alineamiento y MuTect2) en una sola ejecucion.
-
-### Problemas acumulados en WSL2
-
-1. **Gestion de memoria.** WSL2 opera sobre una maquina virtual ligera con memoria
-   asignada dinamicamente. Bajo carga sostenida, procesos como BWA-MEM2 y GATK
-   alcanzaban el limite disponible y morian por OOM, sin que el ajuste de .wslconfig
-   resolviera el problema de forma fiable.
-
-2. **Rendimiento de E/S sobre drvfs.** Los datos pesados residian en el disco externo
-   K:, montado mediante drvfs. El acceso a ficheros grandes a traves de esa capa de
-   traduccion es sustancialmente mas lento que sobre un sistema de ficheros nativo, y
-   varias herramientas (sra-tools entre ellas) fallaban directamente al intentar
-   escribir en esa ruta.
-
-3. **Espacio y crecimiento del VHDX.** El disco virtual ext4.vhdx crece de forma
-   dinamica pero no se compacta solo, lo que obligaba a intervenciones manuales
-   periodicas (ver NB-006). Con volumenes de cientos de gigabytes, la gestion del
-   espacio se convirtio en una tarea recurrente en lugar de un detalle de instalacion.
-
-Ninguno de los tres problemas era insalvable por separado. En conjunto hacian que cada
-ejecucion larga fuese una fuente de fallos, y la reproducibilidad del pipeline, que es
-uno de los objetivos declarados del trabajo, quedaba comprometida por el entorno.
-
-### Decision
-
-Instalar **Ubuntu en arranque dual** junto a Windows, en lugar de seguir ajustando la
-configuracion de WSL2. Se descarto la maquina virtual completa por la penalizacion de
-rendimiento, y el arranque dual permitia conservar Windows para el resto de tareas.
-
-### Pasos ejecutados
-
-    # 1. Instalacion de Ubuntu en particion propia (arranque dual)
-    # 2. Reinstalacion del stack: Java 17, Nextflow, Miniconda, Docker
-    # 3. Recreacion del entorno Conda
-    conda env create -f entorno/environment.yml
-    conda activate tfm-variantes
-
-    # 4. Clonado del repositorio desde GitHub
-    git clone https://github.com/jcarlosolmopicon-ops/pipeline-variantes-tfm.git
-
-    # 5. Traslado de los datos pesados al almacenamiento nativo (ext4 sobre NVMe)
-    #    Verificacion de integridad tras la copia
-    gzip -t datos-raw/HCC1395/*.fastq.gz
-
-    # 6. Relanzamiento del pipeline
-    nextflow run main.nf -profile local --step all -resume
-
-### Resultado
-
-La ejecucion completa termino sin interrupciones. Los tiempos mejoraron de forma
-apreciable al eliminar la capa drvfs, aunque la etapa de MuTect2 siguio siendo el
-cuello de botella del flujo (mas de 10 horas sobre el par completo).
-
-### Consecuencias para el resto del proyecto
-
-- La estrategia de almacenamiento descrita en NB-004 y en docs/almacenamiento_datos.md
-  (montaje de K:, temporales en C:, compactacion del VHDX) **deja de aplicar**. Todos
-  los datos residen a partir de aqui en el sistema de ficheros nativo.
-- Se descarto definitivamente **BWA-MEM2** en favor de BWA 0.7.17 clasico. Aunque el
-  cambio de entorno alivio la presion de memoria, BWA-MEM2 seguia mostrando un perfil
-  de consumo poco predecible para el volumen de datos de este trabajo.
-- Todos los resultados reportados en la memoria (exp03, exp04, exp05 y exp06) se
-  obtuvieron en este entorno.
-
-### Configuracion final
-
-| Elemento | Valor |
-|----------|-------|
-| Sistema | Ubuntu (arranque dual junto a Windows 11) |
-| Hostname | olmop-MS-7E26 |
-| CPUs asignadas al pipeline | 12 |
-| Memoria asignada al pipeline | 28 GB |
-| Almacenamiento | NVMe, ext4 nativo |
-| Perfil de ejecucion | local (Docker) |
+    resultados/exp03/happy/
+      seqc2_eval.summary.csv
+      seqc2_eval.extended.csv
+      seqc2_eval.vcf.gz (+ .tbi)
+      seqc2_eval.roc.*.csv.gz
+      seqc2_eval.runinfo.json
+      truth.gt.vcf.gz (+ .tbi)   # truth set adaptado, reproducible
