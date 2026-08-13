@@ -19,11 +19,21 @@ datos-intermedios/*.bai
 datos-intermedios/*.vcf.gz
 datos-intermedios/*.tbi
 
-# Modelos ML serializados (grandes)
-resultados/**/*.pkl
-resultados/**/*.joblib
-resultados/**/*.pkl
-resultados/**/pipeline_info/
+# Intermedios pesados del pipeline (regenerables de forma determinista)
+resultados/*/bam/
+resultados/*/bqsr/
+resultados/*/trim/
+resultados/*/markdup/*.bam
+resultados/*/markdup/*.bai
+
+# Corridas de prueba y desarrollo (no forman parte de los resultados de la memoria)
+resultados/exp01/
+resultados/exp02/
+resultados/test/
+resultados/test_all/
+
+# Nota: los modelos serializados de exp04 (model_*.joblib, ~17 MB) y los informes de
+# ejecucion de exp03 (pipeline_info/) SI se versionan: documentan los resultados del TFM.
 
 # Python
 __pycache__/
@@ -33,38 +43,13 @@ __pycache__/
 # Conda
 .conda/
 
-# OS
-.DS_Store
-Thumbs.db
-resultados/exp01/
-version?current=*
+# Instaladores y ficheros sueltos
 Miniforge3-*.sh
 *.config.save
+version?current=*
 FASTQC*
 
-# Resultados pesados de exp03 (BAMs intermedios y FASTQs trimados)
-resultados/exp03_run_completa/bam/
-resultados/exp03_run_completa/bqsr/
-resultados/exp03_run_completa/trim/
-resultados/exp03_run_completa/markdup/*.bam
-
-# Resultados de pruebas/desarrollo (no finales)
-resultados/test/
-resultados/test_all/
-
-# Excepcion: modelos finales del modulo ML (pequeños, documentan el TFM)
-!resultados/exp02_ml/*.joblib
-
-# Corridas de desarrollo previas (superadas por exp03_run_completa)
-resultados/exp01/bam/
-resultados/exp01/bqsr/
-resultados/exp01/markdup/*.bam
-resultados/exp01/markdup/*.bai
-
-# Excepcion: pipeline_info de exp03 (documentacion de ejecucion)
-!resultados/exp03_run_completa/pipeline_info/
+# OS y editores
+.DS_Store
+Thumbs.db
 .~lock.*#
-
-# Intermedios pesados del pipeline (regenerables de forma determinista)
-resultados/*/bqsr/
-resultados/*/trim/
