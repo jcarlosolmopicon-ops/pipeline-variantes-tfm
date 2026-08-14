@@ -53,10 +53,20 @@ aprendizaje automático.
 
 ## Instalación del entorno
 
+Para reproducir los resultados publicados, usar la exportación del entorno con el que se
+obtuvieron (Ubuntu 26.04, mayo de 2026):
+
 ```bash
-conda env create -f entorno/environment.yml
+conda env create -f entorno/environment_ubuntu_2026-05.yml
 conda activate tfm-variantes
 ```
+
+`entorno/environment.yml` declara las dependencias sin fijar versiones y sirve para levantar un
+entorno de trabajo actualizado; `entorno/environment_from_history.yml` es la exportación de la
+fase inicial sobre WSL2 y se conserva por trazabilidad histórica.
+
+Las herramientas del pipeline no proceden de ninguno de estos ficheros: se ejecutan en
+contenedores Docker con etiqueta fija declarada en cada `modules/*.nf`.
 
 ## Ejecución
 
@@ -151,9 +161,11 @@ mediante `.gitignore`. Los detalles de descarga están en `docs/descarga_datos.m
 | `docs/descarga_datos.md` | Procedimiento de descarga de los datos de partida y las referencias |
 | `docs/liftover_GRCh37_to_GRCh38.md` | Conversión de coordenadas del MAF con CrossMap |
 | `datos-raw/README.md` | Descripción de los datos de partida y del truth set |
+| `entorno/environment_ubuntu_2026-05.yml` | Entorno conda con el que se obtuvieron los resultados |
 
-El pipeline se ejecutó sobre Ubuntu nativo con 12 CPUs, 28 GB de RAM y almacenamiento NVMe.
-La fase inicial del proyecto se desarrolló sobre WSL2; la migración se documenta en NB-007.
+El pipeline se ejecutó sobre Ubuntu 26.04 LTS con Nextflow 25.10.4 y Docker 29.1.3, en una
+estación de trabajo con 12 CPUs, 28 GB de RAM y almacenamiento NVMe. La fase inicial del proyecto
+se desarrolló sobre WSL2; la migración se documenta en NB-007.
 
 ## Autor
 
