@@ -119,9 +119,10 @@ def main():
             metrics["feature_importance"] = dict(sorted(
                 zip(FEATURES, model.feature_importances_.tolist()), key=lambda x: -x[1]))
 
-    # --- Predicciones sobre el test, para las figuras ---
-    # Las curvas ROC y de precision-sensibilidad se dibujan a partir de este
-    # fichero, de modo que el script de figuras no reentrena nada.
+    # --- Predicciones sobre el conjunto de test ---
+    # Se exportan la etiqueta y la puntuacion de cada modelo y de cada linea
+    # base, de modo que las curvas ROC y de precision-sensibilidad puedan
+    # recalcularse sin reentrenar.
     predicciones = pd.DataFrame({"label": y_test})
     predicciones["SIFT"] = -X_test["SIFT_score"].values
     predicciones["PolyPhen"] = X_test["PolyPhen_score"].values

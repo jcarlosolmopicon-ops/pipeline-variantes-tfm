@@ -599,3 +599,132 @@ de la memoria.
       seqc2_eval.roc.*.csv.gz
       seqc2_eval.runinfo.json
       truth.gt.vcf.gz (+ .tbi)   # truth set adaptado, reproducible
+
+---
+
+## Entrada NB-009 — Replanteamiento del módulo ML con etiqueta externa (exp07)
+
+**Fecha:** 16 de agosto de 2026
+**Máquina:** olmop-MS-7E26 (Ubuntu nativo)
+**Estado:** Completado
+
+### Motivo
+
+Al revisar exp04 antes de cerrar la memoria aparecieron dos problemas en el planteamiento, no
+en la ejecución:
+
+1. **La etiqueta era predecible sin entrenar.** Una regla determinista ("tiene puntuación SIFT
+   o PolyPhen, o es un indel") evaluada sobre el mismo test de exp04 da F1 = 0,9407, frente a
+   0,9405 de Random Forest y 0,9406 de la regresión logística. Solo XGBoost la supera, y por
+   nueve diezmilésimas. Script: `scripts/exp07_rule_baseline_exp04.py`.
+
+2. **La ablación de exp05 no eliminaba lo que decía eliminar.** Al quitar `SIFT_missing` y
+   `PolyPhen_missing` se mantiene el `SimpleImputer(strategy="median")`, de modo que el valor
+   imputado sigue marcando qué filas carecían de puntuación:
+
+   | Columna | Mediana (train) | Filas imputadas | Filas reales con ese valor | Pureza |
+   |---|---|---|---|---|
+   | `PolyPhen_score` | 0,600 | 1.386.273 | 348 | 99,97 % |
+   | `SIFT_score` | 0,030 | 1.504.495 | 63.782 | 95,93 % |
+
+   Un árbol que particione en esos valores reconstruye el indicador. La caída de AUC de 0,0010
+   es, por tanto, compatible con que la señal siguiera disponible.
+
+La causa común es la definición del problema: con la etiqueta derivada de
+`Variant_Classification`, tener puntuación SIFT implica `label = 1` en el 100,0000 % de las
+1.913.573 variantes que la tienen. Restringir la evaluación al subconjunto con puntuación,
+que es la comprobación habitual, tampoco sirve aquí porque ese subconjunto contiene una sola
+clase.
+
+### Decisión
+
+Conservar exp04 a exp06 como están y añadir un planteamiento nuevo con etiqueta externa, en
+lugar de reajustar el anterior.
+
+### Datos
+
+ClinVar en GRCh38, `fileDate=2026-08-08`, descargado el 16 de agosto de 2026:
+
+    mkdir -p datos-raw/clinvar
+    curl -L -o datos-raw/clinvar/clinvar_GRCh38_20260810.vcf.gz \
+      https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz
+    curl -L -o datos-raw/clinvar/clinvar_GRCh38_20260810.vcf.gz.tbi \
+      https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz.tbi
+
+El fichero (185 MB) está en `.gitignore`. La versión queda registrada en
+`resultados/exp07/clinvar_version.txt`.
+
+### Cruce y filtrado
+
+Coincidencia exacta `cromosoma:posición:ref:alt`, solo SNV: los indels se representan de forma
+distinta en MAF y VCF y no se pueden emparejar sin normalizar. De los 3.425.534 SNV del MAF,
+323.626 tienen registro en ClinVar (242.638 variantes distintas).
+
+    python3 scripts/build_clinvar_dataset.py
+
+| Paso | Variantes |
+|---|---|
+| Missense con clasificación P/LP o B/LB | 19.042 |
+| Con `criteria_provided` en `CLNREVSTAT` | 18.462 |
+| Con SIFT y PolyPhen disponibles | **15.734** |
+
+Las 2.728 descartadas por falta de puntuación tienen una prevalencia de patogénicas del 22,3 %,
+frente al 29,3 % de las retenidas. Se descartan en vez de imputarse: imputar es lo que
+invalidó exp05.
+
+### Tres decisiones de diseño
+
+1. **Solo missense.** Sobre todas las clases, la consecuencia determina la etiqueta de ClinVar
+   casi por completo (48.194 de 48.270 silenciosas son benignas; 6.474 de 6.527 nonsense son
+   patogénicas). Entrenar sobre el conjunto completo reproduciría el problema de exp04. En
+   missense conviven las dos clases: 13.396 benignas frente a 5.646 patogénicas.
+2. **Agrupación por gen**, no por muestra. Aquí el eje de fuga es el gen: sin agrupar, el
+   modelo memoriza que las variantes de TP53 tienden a ser patogénicas. El script comprueba
+   con un `assert` que ningún gen aparece en las dos particiones.
+3. **Sin imputación**, por lo dicho arriba.
+
+### Resultados
+
+    python3 scripts/exp07_train_pathogenicity.py
+
+15.734 variantes, 4.605 patogénicas (29,3 %), 6.603 genes. Train 12.686 / 5.282 genes, test
+3.048 / 1.321 genes.
+
+| Modelo | AUC-ROC | PR-AUC | Precisión | Recall | F1 |
+|---|---|---|---|---|---|
+| SIFT (línea base) | 0,9132 | 0,7380 | 0,6547 | 0,8866 | 0,7532 |
+| PolyPhen (línea base) | 0,9233 | 0,8033 | 0,7167 | 0,7847 | 0,7492 |
+| SIFT < 0,05 y PolyPhen > 0,85 | 0,9323 | 0,8273 | 0,7728 | 0,7442 | 0,7583 |
+| Regresión logística | 0,9330 | 0,8197 | 0,6763 | 0,8947 | 0,7703 |
+| Random Forest | 0,9406 | 0,8427 | 0,7090 | 0,8854 | 0,7874 |
+| XGBoost | 0,9412 | 0,8453 | 0,7699 | 0,7940 | 0,7818 |
+
+La ganancia sobre la mejor línea base es de 0,0089 en AUC-ROC y 0,029 en F1. Es pequeña, pero
+se mantiene en las tres métricas y coincide con la validación cruzada (RF: 0,9411 ± 0,0053).
+
+Importancias del Random Forest: PolyPhen 0,493 y SIFT 0,447; las otras cinco suman 0,059. La
+recurrencia en las 10.295 muestras del MAF aporta 0,009, previsiblemente porque la mayoría de
+las variantes del conjunto aparece en una o dos muestras.
+
+Comprobación sobre las variantes que ClinVar clasifica además como oncogénicas: solo 33 caen
+en genes del conjunto de test; probabilidad media 0,843 y recall 0,879. Sin negativos, no es
+una validación.
+
+### Limitaciones anotadas para la memoria
+
+- `CLNSIG` es significado clínico germinal, no oncogenicidad somática. Entre los genes con más
+  patogénicas aparecen SCN1A, FBN1 y COL4A5, que son de enfermedad mendeliana.
+- Los criterios ACMG admiten evidencia computacional (PP3/BP4), así que SIFT y PolyPhen pueden
+  haber intervenido en el etiquetado. Las métricas son una cota superior.
+- Solo SNV, una sola base de datos, y la comprobación de oncogenicidad se apoya en 33 casos.
+
+### Salidas generadas
+
+    resultados/exp07/
+      clinvar_missense_dataset.tsv    # conjunto de modelado (15.734 filas)
+      dataset_metadata.json
+      exp07_results.json              # métricas, CV, importancias, comprobación ONC
+      exp04_rule_baseline.json        # regla determinista sobre el test de exp04
+      clinvar_version.txt
+      test_predictions.csv            # etiqueta y puntuacion de cada modelo en test
+      build_log.txt / train_log.txt / rule_baseline_log.txt
