@@ -21,7 +21,7 @@ process VEP {
         --assembly GRCh38 \\
         --cache \\
         --offline \\
-        --dir_cache /home/olmop/.vep \\
+        --dir_cache ${params.vep_cache} \\
         --species homo_sapiens \\
         --sift b \\
         --polyphen b \\

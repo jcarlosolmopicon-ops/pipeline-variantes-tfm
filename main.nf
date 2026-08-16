@@ -9,6 +9,7 @@ include { MARKDUPLICATES } from './modules/markduplicates'
 include { BQSR           } from './modules/bqsr'
 include { MUTECT2        } from './modules/mutect2'
 include { VEP            } from './modules/vep'
+include { CLASSIFY       } from './modules/classify'
 
 workflow {
     log.info """
@@ -69,6 +70,12 @@ workflow {
         VEP(vcf_ch)
     }
 
+    if (params.step == 'classify') {
+        vcf_ch    = Channel.fromPath("${params.outdir}/vep/annotated.vcf.gz", checkIfExists: true)
+        models_ch = Channel.value(file(params.modelos))
+        CLASSIFY(vcf_ch, models_ch)
+    }
+
     if (params.step == 'all') {
         genome_ch = Channel.value(file(params.genome))
         index_ch  = Channel.fromPath("${params.genome}.*").collect()
@@ -89,5 +96,6 @@ workflow {
         normal_ch = bqsr_ch.filter { it[0].id == params.normal_id }
         MUTECT2(tumor_ch, normal_ch, genome_ch, index_ch, dict_ch)
         VEP(MUTECT2.out.vcf_filtered)
+        CLASSIFY(VEP.out.vcf, Channel.value(file(params.modelos)))
     }
 }

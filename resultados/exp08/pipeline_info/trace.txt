@@ -1,0 +1,2 @@
+task_id	hash	native_id	name	status	exit	submit	duration	realtime	%cpu	peak_rss	peak_vmem	rchar	wchar
+1	71/c18f13	66736	CLASSIFY (ml_classification)	FAILED	1	2026-08-17 01:36:50.725	4.4s	4.3s	-	-	-	-	-
