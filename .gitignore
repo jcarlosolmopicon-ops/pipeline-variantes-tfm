@@ -8,6 +8,7 @@ datos-intermedios/nextflow-work/
 datos-raw/HCC1395/
 datos-raw/TCGA-LUAD/
 datos-raw/referencia/
+datos-raw/clinvar/
 datos-raw/**/*.fastq.gz
 datos-raw/**/*.bam
 datos-raw/**/*.fa

@@ -1,0 +1,11 @@
+Leyendo ClinVar...
+  4,217,163 registros con clasificacion
+Cruzando con el MAF (SNP missense)...
+  missense en el MAF: 1,920,605
+  con registro en ClinVar: 234,644 filas (176,245 variantes)
+  etiquetables: 19,042 -> con criterios declarados: 18,462
+Agregando a nivel de variante...
+  descartadas por falta de SIFT o PolyPhen: 2,728
+
+15,734 variantes | 4,605 patogenicas (29.3 %) | 6,603 genes
+Guardado en resultados/exp07/clinvar_missense_dataset.tsv

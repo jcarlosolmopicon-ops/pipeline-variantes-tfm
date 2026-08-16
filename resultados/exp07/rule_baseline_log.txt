@@ -1,0 +1,4 @@
+test: 634,481 variantes
+regla trivial -> F1 0.9407  P 0.9781  R 0.9060
+variantes con score: 1,913,573, de las cuales relevantes 100.0000 %
+Guardado en resultados/exp07/exp04_rule_baseline.json

@@ -1,0 +1,22 @@
+{
+  "descripcion": "regla determinista sin entrenamiento sobre el test de exp04",
+  "n_test": 634481,
+  "precision": 0.9781133323752945,
+  "recall": 0.9060465560199324,
+  "f1": 0.9407017118389263,
+  "roc_auc_regla_binaria": 0.9359459689132104,
+  "confusion_matrix": [
+    [
+      228265,
+      8072
+    ],
+    [
+      37407,
+      360737
+    ]
+  ],
+  "implicacion_score_presente": {
+    "n_variantes_con_score": 1913573,
+    "proporcion_relevantes": 1.0
+  }
+}

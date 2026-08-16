@@ -139,6 +139,30 @@ herramientas del Broad Institute y con las coordenadas GRCh38 del resto del fluj
 
 ---
 
+## ClinVar (etiquetas de patogenicidad, exp07)
+
+Distribución en GRCh38, de acceso libre y sin registro. Se conserva el nombre con la fecha de
+la versión para que quede trazable qué release se empleó, porque ClinVar se actualiza
+semanalmente y las clasificaciones cambian.
+
+    mkdir -p datos-raw/clinvar
+
+    curl -L -o datos-raw/clinvar/clinvar_GRCh38_20260810.vcf.gz \
+      https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz
+
+    curl -L -o datos-raw/clinvar/clinvar_GRCh38_20260810.vcf.gz.tbi \
+      https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz.tbi
+
+    # dejar constancia de la version exacta
+    zcat datos-raw/clinvar/clinvar_GRCh38_20260810.vcf.gz | head -20 \
+      | grep -E '^##(fileDate|source|reference)' > resultados/exp07/clinvar_version.txt
+
+El fichero pesa 185 MB y está en `.gitignore`. La versión empleada tiene
+`fileDate=2026-08-08`.
+
+
+---
+
 ## Notas
 
 - Los ficheros FASTQ, BAM, MAF y de referencia no se versionan en Git (ver `.gitignore`).

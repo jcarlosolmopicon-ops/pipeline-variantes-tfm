@@ -1,0 +1,5 @@
+##fileformat=VCFv4.1
+##fileDate=2026-08-08
+##source=ClinVar
+##reference=GRCh38
+##ID=<Description="ClinVar Variation ID">

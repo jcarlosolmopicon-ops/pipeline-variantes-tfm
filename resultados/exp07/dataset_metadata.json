@@ -1,0 +1,18 @@
+{
+  "clinvar_release": "GRCh38, fileDate 2026-08-08",
+  "n_variants": 15734,
+  "n_pathogenic": 4605,
+  "n_benign": 11129,
+  "prevalence": 0.2927,
+  "n_genes": 6603,
+  "n_dropped_missing_scores": 2728,
+  "n_with_oncogenicity": 164,
+  "clnsig_counts": {
+    "Likely_benign": 9330,
+    "Pathogenic/Likely_pathogenic": 1612,
+    "Likely_pathogenic": 1531,
+    "Pathogenic": 1462,
+    "Benign": 1038,
+    "Benign/Likely_benign": 761
+  }
+}

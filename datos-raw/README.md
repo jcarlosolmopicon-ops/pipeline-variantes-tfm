@@ -47,6 +47,28 @@ variantes (219.815, de 509 muestras). La incidencia se detectó durante la verif
 de los datos y se documenta en la sección 5.3.1 de la memoria. Obliga a interpretar el
 clasificador como un modelo pan-cáncer, no específico de adenocarcinoma de pulmón.
 
+## Etiquetas de patogenicidad (exp07) — ClinVar
+
+| Fichero | Versión | Acceso | Contenido |
+|---------|---------|--------|-----------|
+| `clinvar/clinvar_GRCh38_20260810.vcf.gz` (+ `.tbi`) | `fileDate` 2026-08-08 | Abierto, sin registro | 4.217.163 registros con clasificación |
+
+- **Archivo:** ClinVar (NCBI), Landrum et al., *Nucleic Acids Research* 2018
+- **Referencia:** GRCh38
+- **Campos empleados:** `CLNSIG` (significado clínico), `ONC` (oncogenicidad somática, según
+  los criterios de Horak et al. 2022) y `CLNREVSTAT` (nivel de revisión del envío)
+- **URL:** https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/
+
+**Cruce con el MAF.** Coincidencia exacta de cromosoma, posición y alelos, restringida a SNV
+porque los indels se representan de forma distinta en los formatos MAF y VCF. De los 3.425.534
+SNV del MAF, 323.626 tienen registro en ClinVar. El subconjunto missense con clasificación
+patogénica o benigna y criterios de revisión declarados son 18.462 variantes, de las que
+15.734 conservan puntuación de SIFT y de PolyPhen y forman el conjunto de modelado de exp07.
+
+**Versión.** ClinVar se actualiza semanalmente y las clasificaciones cambian, por lo que el
+nombre del fichero incorpora la fecha y la versión exacta queda registrada en
+`resultados/exp07/clinvar_version.txt`.
+
 ## Genoma de referencia y recursos auxiliares
 
 | Fichero | Uso |
@@ -55,6 +77,7 @@ clasificador como un modelo pan-cáncer, no específico de adenocarcinoma de pul
 | `referencia/dbsnp138.vcf.gz` (+ `.tbi`) | Sitios conocidos para BQSR |
 | `referencia/hg19ToHg38.over.chain.gz` | Liftover del MAF |
 | Caché de VEP `~/.vep/homo_sapiens/110_GRCh38` | Anotación funcional en modo offline |
+| `clinvar/clinvar_GRCh38_20260810.vcf.gz` | Etiquetas de patogenicidad para exp07 |
 
 ## Datos de prueba
 
