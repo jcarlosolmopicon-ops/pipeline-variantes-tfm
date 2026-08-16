@@ -728,3 +728,83 @@ una validación.
       clinvar_version.txt
       test_predictions.csv            # etiqueta y puntuacion de cada modelo en test
       build_log.txt / train_log.txt / rule_baseline_log.txt
+
+---
+
+## Entrada NB-010 — Integración de la inferencia ML en Nextflow (exp08) y portabilidad
+
+**Fecha:** 17 de agosto de 2026
+**Máquina:** olmop-MS-7E26 (Ubuntu nativo)
+**Estado:** Completado
+
+### Objetivo
+
+Cerrar la limitación de ingeniería declarada en la memoria (el módulo de clasificación se
+ejecutaba con scripts a mano) integrando la **inferencia** como proceso de Nextflow, y dejar
+el repositorio ejecutable por cualquier usuario sin editar rutas.
+
+### Diseño
+
+Solo se integra la inferencia. El entrenamiento consume el MAF de 3,6 M de variantes y
+produce un artefacto una única vez: no es una etapa del procesamiento de una muestra, y
+meterlo en el flujo obligaría a reentrenar en cada ejecución. Queda fuera como script
+reproducible con su entorno exportado.
+
+Ficheros nuevos:
+
+    scripts/apply_model.py     version parametrizada de apply_model_hcc1395.py (--vcf,
+                               --modelos, --outdir); misma logica de extraccion
+    modules/classify.nf        proceso CLASSIFY (conda: environment_ubuntu_2026-05.yml,
+                               que Nextflow construye y cachea en ~/.conda-nf-cache)
+    exp08.nf                   workflow independiente del experimento
+    config/exp08.config        workaround del problema del date (ver abajo)
+
+Integración en `main.nf`: `include CLASSIFY`, paso `--step classify` (lee
+`${outdir}/vep/annotated.vcf.gz`, simétrico al paso `annotate`) y encadenado al final de
+`--step all` tras VEP. Recursos en `nextflow.config` (`withLabel: 'classify'`, 2 CPU / 8 GB).
+
+### Hallazgo 1 — no determinismo de la inferencia de Random Forest
+
+La primera verificación contra el TSV histórico de exp04 dio 52.839 filas con diferencias,
+todas en `proba_relevante_RandomForest` y todas de magnitud ≤ 3,3e-16 (1 ULP), con cero
+cambios de clase y XGBoost bit-idéntico. Causa: el modelo se serializó con `n_jobs=-1` y
+`predict_proba` acumula los 200 árboles con hilos, sumando los flotantes en orden dependiente
+del planificador. Se comprobó ejecutando el mismo script dos veces: difieren entre sí
+(53.668 filas, mismas magnitudes), luego el propio TSV de exp04 tampoco era bit-reproducible.
+
+Corrección en `apply_model.py`: forzar `n_jobs = 1` al cargar el modelo (suma secuencial,
+determinista). El TSV histórico de exp04 no se toca. Criterio de verificación doble:
+
+| Comprobación | Resultado |
+|---|---|
+| Dos ejecuciones de exp08 → md5 del TSV | `698df90e…` = `698df90e…` (bit-idénticas) |
+| `main.nf --step classify` → md5 del TSV | idéntico al de exp08 |
+| XGBoost frente a exp04 | bit-exacto (126.014 filas) |
+| Random Forest frente a exp04 | max desviación 4,4e-16, 0 cambios de clase |
+| Resumen JSON | 126.014 / 7.232 / 11.930, exactos |
+
+### Hallazgo 2 — nxf_date y el date de uutils-coreutils
+
+Tras una actualización del sistema, `/usr/bin/date` es el de uutils-coreutils 0.8.0, que no
+respeta el ancho `%3N` (devuelve 19 dígitos en vez de 13). La función `nxf_date` del wrapper
+de Nextflow 25.10.4 produce entonces "Unexpected timestamp value" y la recolección de
+métricas de trace/report/timeline aborta la tarea **después** de completarse el cómputo. Los
+resultados no se ven afectados; solo la contabilidad. Workaround: `-c config/exp08.config`
+(desactiva esos informes). Afecta a cualquier reejecución en este sistema, también de
+`main.nf`; documentado en `docs/instalacion.md`. Comprobación rápida: `date +%s%3N` debe
+devolver 13 dígitos.
+
+### Portabilidad
+
+Se eliminaron las 9 rutas personales de los ficheros versionados: los 7 parámetros de datos
+de `nextflow.config` pasan a `${projectDir}/datos-raw/...`, y la caché de VEP a un parámetro
+nuevo `params.vep_cache = $HOME/.vep` usado por `modules/vep.nf` (`--dir_cache`) y por el
+montaje del contenedor (`containerOptions`), conservando la semántica de misma ruta dentro y
+fuera. `git grep "/home/olmop"` sobre `*.nf *.config *.py *.yml` devuelve vacío. Guía de
+despliegue nueva en `docs/instalacion.md`.
+
+### Salidas generadas
+
+    resultados/exp08/classify/
+      hcc1395_annotated_with_ml.tsv   # bit-determinista (md5 698df90e8b08bdc29f2981d2cd24eaee)
+      hcc1395_ml_summary.json

@@ -12,7 +12,7 @@ El flujo va de las lecturas FASTQ crudas hasta un fichero TSV en el que cada var
 
 ```
 FASTQ → QC → alineamiento → preprocesamiento BAM → MuTect2 → VEP ─┬→ validación hap.py
-                                                                  └→ clasificación ML
+                                                                  └→ CLASSIFY (clasificación ML)
 ```
 
 ## Estructura del repositorio
@@ -26,14 +26,15 @@ pipeline-variantes/
 ├── datos-raw/                 # FASTQs, referencias y ClinVar (en .gitignore)
 │   ├── HCC1395/truth_set/     # Truth set SEQC2 (SNV + INDEL, HighConf y MedConf)
 │   └── clinvar/               # VCF de ClinVar GRCh38 (etiquetas de patogenicidad)
-├── docs/                      # Lab notebook (NB-001 a NB-009) y documentación técnica
+├── docs/                      # Lab notebook (NB-001 a NB-010) y documentación técnica
 ├── entorno/                   # environment.yml (Conda)
 ├── resultados/
 │   ├── exp03/                 # Pipeline completo sobre HCC1395 (FastQC→VEP→hap.py)
 │   ├── exp04/                 # Módulo ML: entrenamiento, evaluación y aplicación
 │   ├── exp05/                 # Experimento de ablación
 │   ├── exp06/                 # Línea base de regresión logística
-│   └── exp07/                 # Clasificación de patogenicidad con etiqueta de ClinVar
+│   ├── exp07/                 # Clasificación de patogenicidad con etiqueta de ClinVar
+│   └── exp08/                 # Inferencia ML integrada como proceso de Nextflow
 ├── main.nf                    # Pipeline principal
 └── nextflow.config            # Configuración principal (perfiles local/conda_local)
 ```
@@ -82,8 +83,28 @@ nextflow run main.nf -profile local \
   -resume
 ```
 
-El parámetro `--step` admite `qc`, `trim`, `align`, `call`, `annotate` o `all`, lo que permite
-ejecutar etapas concretas durante el desarrollo.
+El parámetro `--step` admite `qc`, `trim`, `align`, `call`, `annotate`, `classify` o `all`, lo
+que permite ejecutar etapas concretas durante el desarrollo. El paso `classify` aplica los
+modelos serializados de `resultados/exp04/` al VCF anotado del `--outdir` indicado, como
+proceso de Nextflow (experimento exp08); la inferencia es determinista: dos ejecuciones
+producen ficheros bit-idénticos.
+
+```bash
+# Solo la clasificación, sobre un VCF ya anotado
+nextflow run main.nf -profile conda_local -c config/exp08.config \
+  --step classify --outdir resultados/exp03
+
+# Equivalente como workflow independiente
+nextflow run exp08.nf -profile conda_local -c config/exp08.config \
+  --vcf resultados/exp03/vep/annotated.vcf.gz \
+  --modelos resultados/exp04 \
+  --outdir resultados/exp08
+```
+
+Todas las rutas de `nextflow.config` son relativas al proyecto (`${projectDir}`) o al `HOME`
+del usuario (caché de VEP en `~/.vep`): el repositorio funciona clonado en cualquier ruta sin
+editar la configuración. La guía completa para desplegarlo en otro equipo está en
+[`docs/instalacion.md`](docs/instalacion.md).
 
 ### Módulo de aprendizaje automático
 
@@ -110,6 +131,7 @@ scikit-learn y XGBoost.
 | exp05 | Ablación: retira los indicadores `SIFT_missing` y `PolyPhen_missing`. Ver la nota de más abajo sobre su interpretación |
 | exp06 | Línea base: regresión logística sobre las mismas características y particiones, para contextualizar el AUC de los modelos de conjunto |
 | exp07 | Clasificación de patogenicidad con etiqueta externa de ClinVar, restringida a variantes missense y con partición agrupada por gen. Incluye la regla determinista evaluada sobre el test de exp04 |
+| exp08 | Integración de la inferencia del módulo ML como proceso de Nextflow (`modules/classify.nf`, paso `classify` de `main.nf` y workflow `exp08.nf`). Reproduce el TSV de exp04 (XGBoost bit-exacto; RF con desviación < 1e-15 y mismos recuentos 7.232/11.930) y es bit-determinista entre ejecuciones |
 
 ### Resultados de validación (hap.py vs. truth set SEQC2/HCC1395)
 
@@ -212,7 +234,7 @@ ClinVar) están excluidos mediante `.gitignore`. Los detalles de descarga están
 
 | Fichero | Contenido |
 |---------|-----------|
-| `docs/lab_notebook.md` | Registro técnico de sesiones (entradas NB-001 a NB-009) |
+| `docs/lab_notebook.md` | Registro técnico de sesiones (entradas NB-001 a NB-010) |
 | `docs/descarga_datos.md` | Procedimiento de descarga de los datos de partida y las referencias |
 | `docs/liftover_GRCh37_to_GRCh38.md` | Conversión de coordenadas del MAF con CrossMap |
 | `datos-raw/README.md` | Descripción de los datos de partida, del truth set y de ClinVar |
