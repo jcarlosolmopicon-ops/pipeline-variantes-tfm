@@ -39,11 +39,11 @@ pipeline-variantes/
 └── nextflow.config            # Configuración principal (perfiles local/conda_local)
 ```
 
-> **Nomenclatura de los experimentos.** En el texto de la memoria los dos experimentos
-> principales se denominan *exp01* (validación sobre HCC1395) y *exp02* (módulo ML). Por la
-> evolución incremental del proyecto, en este repositorio corresponden a `exp03/` y `exp04/`.
-> Las carpetas locales `exp01/` y `exp02/`, que contienen ejecuciones de prueba tempranas
-> sobre subconjuntos reducidos, no se versionan.
+> **Nomenclatura de los experimentos.** La numeración empieza en `exp03/` porque `exp01/` y
+> `exp02/` albergaron ejecuciones de prueba tempranas sobre subconjuntos reducidos de lecturas,
+> descartadas del análisis final y excluidas del control de versiones (solo se versiona su
+> `.gitkeep`). La memoria emplea esta misma numeración —`exp03` para la validación del pipeline
+> y `exp04` para el módulo ML— y lo justifica en su sección 5.1.
 
 ## Requisitos
 
@@ -200,9 +200,12 @@ coordenadas GRCh38 tras liftover con CrossMap 0.7.2.
 
 **Etiquetas de patogenicidad.** ClinVar en GRCh38 (`fileDate` 2026-08-08), de acceso libre y sin
 registro. Se cruza con el MAF por coincidencia exacta de cromosoma, posición y alelos,
-restringido a SNV. De los 3.425.534 SNV del MAF, 323.626 tienen registro en ClinVar; el
-subconjunto missense con clasificación patogénica o benigna y criterios de revisión declarados
-son 18.462 variantes, de las que 15.734 conservan SIFT y PolyPhen.
+restringido a las SNV missense (los indels se representan de forma distinta en MAF y VCF y no
+se pueden emparejar sin normalizar). De las 1.920.605 SNV missense del MAF —sobre un total de
+3.425.534 SNV—, 234.644 filas tienen registro en ClinVar, correspondientes a 176.245 variantes
+distintas; las que tienen clasificación patogénica o benigna y criterios de revisión declarados
+son 18.462 variantes, de las que 15.734 conservan SIFT y PolyPhen. Las cifras las emite
+`scripts/build_clinvar_dataset.py` y quedan registradas en `resultados/exp07/build_log.txt`.
 
 Los ficheros pesados (FASTQ, BAM alineados y recalibrados, referencias, MAF y el VCF de
 ClinVar) están excluidos mediante `.gitignore`. Los detalles de descarga están en `docs/descarga_datos.md`.
@@ -222,12 +225,14 @@ ClinVar) están excluidos mediante `.gitignore`. Los detalles de descarga están
   muestra, de modo que la fuga potencial afecta como máximo al 1.4 % de las muestras.
 - En exp07, `CLNSIG` expresa **significado clínico germinal**, no oncogenicidad somática: entre
   los genes con más variantes patogénicas aparecen SCN1A, FBN1 o COL4A5, de enfermedad
-  mendeliana. El campo `ONC` de ClinVar, que sí es oncogenicidad, solo cruza con 544 variantes
-  y ninguna benigna, insuficiente para entrenar.
+  mendeliana. El campo `ONC` de ClinVar, que sí es oncogenicidad, solo está presente en 164 de
+  las 15.734 variantes del conjunto (156 de ellas `Oncogenic` o `Likely_oncogenic`) y todas son
+  patogénicas según `CLNSIG`: sin ningún negativo, es insuficiente para entrenar. Sí sirve como
+  comprobación externa (bloque `oncogenicity_check` de `resultados/exp07/exp07_results.json`).
 - Los criterios ACMG admiten evidencia computacional (PP3, BP4), de modo que SIFT y PolyPhen
   pueden haber intervenido en el etiquetado de ClinVar. Las métricas de exp07 son una cota
   superior.
-- El cruce con ClinVar se limita a SNV y descarta 2.728 variantes sin puntuación funcional,
+- El cruce con ClinVar se limita a SNV missense y descarta 2.728 variantes sin puntuación funcional,
   cuya prevalencia de patogénicas (22.3 %) difiere de la del conjunto retenido (29.3 %).
 
 ## Documentación

@@ -657,8 +657,18 @@ El fichero (185 MB) está en `.gitignore`. La versión queda registrada en
 ### Cruce y filtrado
 
 Coincidencia exacta `cromosoma:posición:ref:alt`, solo SNV: los indels se representan de forma
-distinta en MAF y VCF y no se pueden emparejar sin normalizar. De los 3.425.534 SNV del MAF,
-323.626 tienen registro en ClinVar (242.638 variantes distintas).
+distinta en MAF y VCF y no se pueden emparejar sin normalizar. El cruce se restringe además a
+las variantes missense en el propio filtro, no a posteriori, porque el modelado solo las usa
+(ver la decisión 1 más abajo). De las 1.920.605 SNV missense del MAF —sobre un total de
+3.425.534 SNV—, 234.644 filas tienen registro en ClinVar, correspondientes a 176.245 variantes
+distintas.
+
+> **Corrección (20/08/2026).** Esta entrada registraba antes «323.626 filas / 242.638 variantes
+> distintas» para el cruce. Esa cifra procedía de un cruce exploratorio sobre *todas* las SNV
+> que no llegó a quedar como script versionado, y no es reproducible: repitiendo ese mismo
+> cruce con el criterio de `build_clinvar_dataset.py` (ClinVar con `CLNSIG` no vacío y ALT
+> único) salen 323.000 filas / 242.483 variantes. Se sustituye por las cifras que emite el
+> script versionado, que son las que quedan en `resultados/exp07/build_log.txt`.
 
     python3 scripts/build_clinvar_dataset.py
 
@@ -716,7 +726,8 @@ una validación.
   patogénicas aparecen SCN1A, FBN1 y COL4A5, que son de enfermedad mendeliana.
 - Los criterios ACMG admiten evidencia computacional (PP3/BP4), así que SIFT y PolyPhen pueden
   haber intervenido en el etiquetado. Las métricas son una cota superior.
-- Solo SNV, una sola base de datos, y la comprobación de oncogenicidad se apoya en 33 casos.
+- Solo SNV missense, una sola base de datos, y la comprobación de oncogenicidad se apoya en 33
+  casos (164 variantes del conjunto tienen campo `ONC`, todas patogénicas: sin negativos).
 
 ### Salidas generadas
 
