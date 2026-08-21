@@ -1,0 +1,25 @@
+{
+  "n_variants_pass": 126014,
+  "n_variants_scored": 126014,
+  "mean_proba_RandomForest": 0.14061830890163485,
+  "mean_proba_XGBoost": 0.19973647594451904,
+  "n_high_relevance_RF_gt_0.5": 7232,
+  "n_high_relevance_XGB_gt_0.5": 11930,
+  "top_genes_high_relevance_RF": {
+    "TSBP1": 5,
+    "OR2J2": 4,
+    "MICB": 4,
+    "DST": 3,
+    "BTN1A1": 2,
+    "HLA-A": 2,
+    "C6orf15": 2,
+    "PRRC2A": 2,
+    "NOTCH4": 2,
+    "CAPN11": 2,
+    "ENPP5": 2,
+    "MEP1A": 2,
+    "GFRAL": 2,
+    "FKTN": 2,
+    "FARP1": 2
+  }
+}
