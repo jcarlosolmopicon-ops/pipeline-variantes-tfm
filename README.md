@@ -249,6 +249,19 @@ El pipeline se ejecutó sobre Ubuntu 26.04 LTS con Nextflow 25.10.4 y Docker 29.
 estación de trabajo con 12 CPUs, 28 GB de RAM y almacenamiento NVMe. La fase inicial del proyecto
 se desarrolló sobre WSL2; la migración se documenta en NB-007.
 
+## Licencia
+
+El código de este repositorio —los módulos y flujos de Nextflow, los scripts de Python del módulo
+de aprendizaje automático y la configuración— se distribuye bajo licencia **MIT** (fichero
+`LICENSE`).
+
+La licencia cubre únicamente el código propio. Los datos de partida conservan las condiciones de
+sus fuentes originales y no se redistribuyen en este repositorio: SEQC2/HCC1395 (SRA, BioProyecto
+SRP162370), el MAF pan-cáncer MC3 del TCGA (GDC, datos de nivel abierto) y ClinVar (NCBI). Su uso
+académico exige la atribución y la cita de las publicaciones correspondientes, recogidas en la
+memoria del trabajo. Las herramientas de terceros invocadas por el pipeline (GATK, BWA, VEP,
+hap.py y las demás del manifiesto) mantienen sus respectivas licencias.
+
 ## Autor
 
 Juan Carlos Olmo Picón   
