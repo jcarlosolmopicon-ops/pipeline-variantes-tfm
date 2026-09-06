@@ -1,6 +1,5 @@
 # Pipeline de análisis de variantes somáticas
 
-TFM — Máster Universitario en Bioinformática, UAX
 
 ## Descripción
 
@@ -265,5 +264,4 @@ hap.py y las demás del manifiesto) mantienen sus respectivas licencias.
 ## Autor
 
 Juan Carlos Olmo Picón   
-Tutora: Beatriz Magán Pinto  
-UAX, 2026
+
